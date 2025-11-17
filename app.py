@@ -9,7 +9,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgres", "postgresql", 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-
 app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
 
@@ -30,5 +29,6 @@ def static_files(filename):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
+        print("Database tables created.")
     app.run(debug=True)
 
