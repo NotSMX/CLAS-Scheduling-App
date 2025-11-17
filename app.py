@@ -30,6 +30,6 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
         print("Database tables created.")
-    app.run(debug=True)
     print("App is running.")
+    app.run(debug=True)
 
