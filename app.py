@@ -33,3 +33,7 @@ if __name__ == '__main__':
     print("\n\n*********************App is running.")
     app.run(debug=True)
 
+with app.app_context():
+    print("Running create_all() now...")
+    db.create_all()
+    print("Finished create_all().")
