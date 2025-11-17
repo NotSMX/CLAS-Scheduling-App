@@ -29,7 +29,7 @@ def static_files(filename):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
-        print("Database tables created.")
-    print("App is running.")
+        print("\n\n\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&Database tables created.")
+    print("\n\n*********************App is running.")
     app.run(debug=True)
 
