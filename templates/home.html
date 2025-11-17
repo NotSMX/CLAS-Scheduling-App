@@ -1,34 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Home | CLAS</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <a href="{{ url_for('main.home') }}">CLAS</a>
-    </div>
-    <nav class="nav">
-      <a href="{{ url_for('main.home') }}">Home</a>
-      <a href="{{ url_for('main.schedule') }}">Schedule</a>
-      {% if current_user.is_authenticated %}
-        <a href="{{ url_for('events.eventcreate') }}">Create</a>
-        <a href="{{ url_for('events.eventlist') }}">My Events</a>
-        <a href="{{ url_for('main.profile') }}">Profile</a>
-        <a href="{{ url_for('main.settings') }}">Settings</a>
-        <a class="btn-small" href="{{ url_for('main.logout') }}">Logout</a>
-      {% else %}
-        <a class="btn-small" href="{{ url_for('main.login') }}">Log in</a>
-      {% endif %}
-    </nav>
-  </header>
+{% extends "base.html" %}
 
-  <div class="announcement">
-    Submission Deadline for CLAS Spring: Feb 12, 5pm
-    <button class="badge">View Details</button>
-  </div>
+{% block title %}CLAS Schedule{% endblock %}
+
+{% block content %}
 
   <main class="shell">
     <section class="hero">
@@ -36,8 +10,8 @@
       <p>Pick where you want to go.</p>
       <div class="actions">
         <a class="btn" href="{{ url_for('main.schedule') }}">View Schedule</a>
-        <a class="btn" href="{{ url_for('events.eventcreate') }}">Create Event</a>
-        <a class="btn" href="{{ url_for('events.eventlist') }}">View Events</a>
+        <a class="btn" href="{{ url_for('events.event_create_page') }}">Create Event</a>
+        <a class="btn" href="{{ url_for('events.events_page') }}">View Events</a>
       </div>
     </section>
 
@@ -61,3 +35,4 @@
   </main>
 </body>
 </html>
+{% endblock %}
