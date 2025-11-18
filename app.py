@@ -2,17 +2,19 @@ from flask import Flask, render_template, send_from_directory
 from flask_login import LoginManager
 from views import main_blueprint
 from events import events_blueprint
-from models import db, User
+from models import db, User, Session, Event, Room
+from admin import admin_blueprint
 import os
 from dotenv import load_dotenv
 
 app = Flask(__name__)
 load_dotenv()
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgres", "postgresql", 1)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clas_app.db'
+app.config['SECRET_KEY'] = 'dev'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
+app.register_blueprint(admin_blueprint)
 
 db.init_app(app)
 
@@ -32,6 +34,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
     app.run(debug=True)
-
-with app.app_context():
-    db.create_all()  # Create database tables

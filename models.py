@@ -37,7 +37,7 @@ class Event(db.Model):
     special_request = db.Column(db.String(160))
     status = db.Column(db.String(20), default='draft')
 
-    session = db.relationship('Session', backref='Event', uselist=False, cascade='all, delete-orphan', passive_deletes=True)
+    session = db.relationship('Session', backref='event', uselist=False, cascade='all, delete-orphan', passive_deletes=True)
 
 class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
