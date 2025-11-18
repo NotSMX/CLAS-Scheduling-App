@@ -8,7 +8,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(128), nullable=True)
     role = db.Column(db.String(20), nullable=False)
     profile_pic_url = db.Column(db.String(255), nullable=True, default=None)
 
@@ -18,6 +18,8 @@ class User(db.Model, UserMixin):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        if not self.password_hash:
+            return False  # Google user with no password
         return check_password_hash(self.password_hash, password)
 
 class Event(db.Model):
