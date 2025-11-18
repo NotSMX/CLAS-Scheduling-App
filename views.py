@@ -2,60 +2,97 @@ from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Session, Event
 
-main_blueprint = Blueprint('main', __name__)
+main_blueprint = Blueprint("main", __name__)
 
 @main_blueprint.get("/")
 def landing():
     return render_template("base.html")
 
-@main_blueprint.route('/home')
+@main_blueprint.get("/home")
 def home():
-    return render_template('home.html', user=current_user)
-
-@main_blueprint.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        email = (request.form.get("email") or "").strip()
-        password = request.form.get("password") or ""
-
-        user = User.query.filter_by(email=email).first()
-        if user and user.check_password(password):
-            login_user(user)
-            return redirect(url_for("main.home"))
-        else:
-            flash("Invalid email or password.", "error")
-            return render_template("login.html"), 401
-
-    return render_template("login.html")
-
-@main_blueprint.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        user = (request.form.get("user") or "").strip()
-        email = (request.form.get("email") or "").strip()
-        password = request.form.get("password") or ""
-        role = (request.form.get("role") or "").strip()
-
-        if not user or not email or not password or not role:
-            flash("Please fill in all fields.", "error")
-            return render_template("register.html"), 400
-
-        if User.query.filter_by(email=email).first():
-            flash("Email already registered!", "error")
-            return render_template("register.html"), 400
-
-        new_user = User(name=user, email=email, role=role)
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash("Account created successfully! You can now log in.", "success")
-        return redirect(url_for("main.login"))
-
-    return render_template("register.html")
+    return render_template("home.html", user=current_user)
 
 @main_blueprint.get("/schedule")
 def schedule():
+    return render_template("schedule.html", user=current_user)
+
+@main_blueprint.get("/register")
+def register():
+    return render_template("register.html", user=current_user)
+
+@main_blueprint.get("/login")
+def login():
+    return render_template("login.html", user=current_user)
+
+@main_blueprint.get("/profile")
+@login_required
+def profile():
+    return render_template("profile.html", user=current_user)
+
+@main_blueprint.get("/settings")
+@login_required
+def settings_page():
+    return render_template("settings.html", user=current_user)
+
+@main_blueprint.post("/api/v1/login")
+def api_login():
+    email = (request.form.get("email") or "").strip()
+    password = request.form.get("password") or ""
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.check_password(password):
+        return render_template(
+            "login.html",
+            user=current_user,
+            error_code=401,
+            error_message="Invalid email or password."
+        )
+    
+    login_user(user)
+    return render_template(
+        "home.html",
+        user=current_user,
+        success_code=200,
+        success_message="Logged in successfully!"
+    )
+
+@main_blueprint.post("/api/v1/register")
+def api_register():
+    user = (request.form.get("user") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    password = request.form.get("password") or ""
+    role = (request.form.get("role") or "").strip()
+
+    if not user or not email or not password or not role:
+        return render_template(
+            "register.html",
+            user=current_user,
+            error_code=400,
+            error_message="Please fill in all fields."
+        )
+    
+    if User.query.filter_by(email=email).first():
+        return render_template(
+            "register.html",
+            user=current_user,
+            error_code=400,
+            error_message="Email already registered!"
+        )
+    
+    new_user = User(name=user, email=email, role=role)
+    new_user.set_password(password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return render_template(
+        "login.html",
+        user=current_user,
+        success_code=201,
+        success_message="Account created successfully! You can now log in."
+    )
+
+@main_blueprint.get("/api/v1/schedule")
+def api_schedule():
     sessions = (
         Session.query
         .join(Event, Session.submission_id == Event.id)
@@ -85,17 +122,17 @@ def schedule():
         placed = False
         for i, lane in enumerate(lanes):
             # Check if session overlaps with any session in lane
-            overlap = any(not (end <= other['start_minutes'] or start >= other['end_minutes']) for other in lane)
+            overlap = any(not (end <= other["start_minutes"] or start >= other["end_minutes"]) for other in lane)
             if not overlap:
-                lane.append({'session': session_obj, 'start_minutes': start, 'end_minutes': end, 'title': title})
-                session_list.append({'session': session_obj, 'lane': i, 'start_minutes': start, 'end_minutes': end, 'title': title})
+                lane.append({"session": session_obj, "start_minutes": start, "end_minutes": end, "title": title})
+                session_list.append({"session": session_obj, "lane": i, "start_minutes": start, "end_minutes": end, "title": title})
                 placed = True
                 break
 
         if not placed:
             # No lane could fit it, create new lane
-            lanes.append([{'session': session_obj, 'start_minutes': start, 'end_minutes': end, 'title': title}])
-            session_list.append({'session': session_obj, 'lane': len(lanes)-1, 'start_minutes': start, 'end_minutes': end, 'title': title})
+            lanes.append([{"session": session_obj, "start_minutes": start, "end_minutes": end, "title": title}])
+            session_list.append({"session": session_obj, "lane": len(lanes)-1, "start_minutes": start, "end_minutes": end, "title": title})
 
     num_lanes = len(lanes)
     return render_template(
@@ -108,47 +145,64 @@ def schedule():
 
 
 # Profile
-@main_blueprint.get("/profile")
+@main_blueprint.get("/api/v1/profile")
 @login_required
-def profile():
-    return render_template("profile.html", user=current_user)
+def api_profile():
+    return render_template(
+        "profile.html",
+        user=current_user,
+        success_code=200
+    )
 
 # Settings
-@main_blueprint.route("/settings", methods=["GET", "POST"])
+@main_blueprint.post("/api/v1/settings")
 @login_required
-def settings():
-    if request.method == "POST":
-        name = (request.form.get("name") or "").strip()
-        role = (request.form.get("role") or "").strip()
-        photo = (request.form.get("profile_pic_url") or "").strip()
-        new_password = request.form.get("new_password") or ""
-        confirm_password = request.form.get("confirm_password") or ""
+def api_settings():
+    name = (request.form.get("name") or "").strip()
+    role = (request.form.get("role") or "").strip()
+    photo = (request.form.get("profile_pic_url") or "").strip()
+    new_password = request.form.get("new_password") or ""
+    confirm_password = request.form.get("confirm_password") or ""
 
-        if name:
-            current_user.name = name
-        if role:
-            current_user.role = role
-        if photo:
-            current_user.profile_pic_url = photo
+    if name:
+        current_user.name = name
+    if role:
+        current_user.role = role
+    if photo:
+        current_user.profile_pic_url = photo
+    
+    if new_password or confirm_password:
+        if new_password != confirm_password:
+            return render_template(
+                "settings.html",
+                user=current_user,
+                error_code=400,
+                error_message="Passwords do not match."
+            )
+        if len(new_password) < 6:
+            return render_template(
+                "settings.html",
+                user=current_user,
+                error_code=400,
+                error_message="Password must be at least 6 characters."
+            )
+        current_user.set_password(new_password)
 
-        if new_password or confirm_password:
-            if new_password != confirm_password:
-                flash("Passwords do not match.", "error")
-                return render_template("settings.html", user=current_user), 400
-            if len(new_password) < 6:
-                flash("Password must be at least 6 characters.", "error")
-                return render_template("settings.html", user=current_user), 400
-            current_user.set_password(new_password)
+    db.session.commit()
+    return render_template(
+        "settings.html",
+        user=current_user,
+        success_code=200,
+        success_message="Settings updated successfully."
+    )
 
-        db.session.commit()
-        flash("Settings updated.", "success")
-        return redirect(url_for("main.settings"))
-
-    return render_template("settings.html", user=current_user)
-
-@main_blueprint.route("/logout")
+@main_blueprint.post("/api/v1/logout")
 @login_required
-def logout():
+def api_logout():
     logout_user()
-    flash("You’ve been logged out.", "info")
-    return redirect(url_for("main.login"))
+    return render_template(
+        "home.html",
+        user=current_user,
+        success_code=200,
+        success_message="You have been logged out."
+    )
