@@ -3,6 +3,8 @@ from flask_login import LoginManager
 from views import main_blueprint
 from events import events_blueprint
 from models import db, User
+from oauth_client import init_oauth
+import os
 import os
 from dotenv import load_dotenv
 
@@ -15,6 +17,12 @@ app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
 
 db.init_app(app)
+
+# Initialize OAuth clients (google) after app is created to avoid circular import
+init_oauth(app)
+
+from auth import auth_blueprint
+app.register_blueprint(auth_blueprint)
 
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
@@ -33,5 +41,3 @@ if __name__ == '__main__':
         db.create_all()  # Create database tables
     app.run(debug=True)
 
-with app.app_context():
-    db.create_all()  # Create database tables
