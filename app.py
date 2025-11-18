@@ -4,11 +4,13 @@ from views import main_blueprint
 from events import events_blueprint
 from models import db, User
 import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+load_dotenv()
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgres", "postgresql", 1)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
 

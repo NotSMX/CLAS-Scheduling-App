@@ -1,25 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Profile | CLAS</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <a href="{{ url_for('main.home') }}">CLAS</a>
-    </div>
-    <nav class="nav">
-      <a href="{{ url_for('main.home') }}">Home</a>
-      <a href="{{ url_for('main.schedule') }}">Schedule</a>
-      <a href="{{ url_for('events.eventcreate') }}">Create</a>
-      <a href="{{ url_for('events.eventlist') }}">My Events</a>
-      <a class="active" href="{{ url_for('main.profile') }}">Profile</a>
-      <a href="{{ url_for('main.settings') }}">Settings</a>
-      <a class="btn-small" href="{{ url_for('main.logout') }}">Logout</a>
-    </nav>
-  </header>
+{% extends "base.html" %}
+
+{% block title %}CLAS Schedule{% endblock %}
+
+{% block content %}
 
   <main class="shell">
     <h2 class="section-title">Your Profile</h2>
@@ -30,10 +13,11 @@
         <p>{{ user.email }}</p>
         <span class="pill">{{ user.role|title }}</span>
         <div class="profile-actions">
-          <a class="btn" href="{{ url_for('main.settings') }}">Edit Profile</a>
+          <a class="btn" href="{{ url_for('main.settings_page') }}">Edit Profile</a>
         </div>
       </div>
     </div>
   </main>
 </body>
 </html>
+{% endblock %}
