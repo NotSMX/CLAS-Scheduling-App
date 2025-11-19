@@ -4,7 +4,7 @@ from models import db, User, Session, Event
 from oauth_client import google
 import re
 from flask import current_app
-from authlib.integrations.flask_client import MismatchingStateError
+from authlib.integrations.base_client.errors import MismatchingStateError
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -52,12 +52,11 @@ def authorize_google():
     
 
     try:
-        # Exchange code for access token
         token = google.authorize_access_token()
     except MismatchingStateError:
-        # This happens on refresh or invalid OAuth state
         flash("Your login session expired. Please try logging in again.", "warning")
         return redirect(url_for('auth.login_google'))
+
     
     userinfo_endpoint = google.server_metadata['userinfo_endpoint']
     resp = google.get(userinfo_endpoint)
