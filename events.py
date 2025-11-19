@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
-from models import db, Event, Session
+from models import db, Event, Session, Room
 from datetime import datetime, time
 from scheduler import Scheduler
 
@@ -405,4 +405,180 @@ def admin_schedule_all():
         ).all(),
         success_code=200,
         success_message=f'Successfully scheduled {success_count} out of {len(results)} events.'
+    )
+
+# Admin room management routes
+@events_blueprint.get("/admin/rooms")
+@login_required
+def admin_rooms_page():
+    if current_user.role != "admin":
+        return render_template(
+            "home.html",
+            user=current_user,
+            error_code=403,
+            error_message="You don't have permission to access this page."
+        )
+    
+    rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+    return render_template("admin_rooms.html", user=current_user, rooms=rooms)
+
+@events_blueprint.post("/admin/rooms/add")
+@login_required
+def admin_add_room():
+    if current_user.role != "admin":
+        return render_template(
+            "home.html",
+            user=current_user,
+            error_code=403,
+            error_message="You don't have permission to access this page."
+        )
+    
+    building_name = request.form.get('building_name', '').strip()
+    room_number = request.form.get('room_number', '').strip()
+    capacity = request.form.get('capacity', type=int)
+    special_features = request.form.get('special_features', '').strip()
+    
+    if not building_name or not room_number or not capacity:
+        rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+        return render_template(
+            "admin_rooms.html",
+            user=current_user,
+            rooms=rooms,
+            error_code=400,
+            error_message="Building name, room number, and capacity are required."
+        )
+    
+    # Check if room already exists
+    existing_room = Room.query.filter_by(
+        building_name=building_name,
+        room_number=room_number
+    ).first()
+    
+    if existing_room:
+        rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+        return render_template(
+            "admin_rooms.html",
+            user=current_user,
+            rooms=rooms,
+            error_code=400,
+            error_message=f"Room {building_name} {room_number} already exists."
+        )
+    
+    new_room = Room(
+        building_name=building_name,
+        room_number=room_number,
+        capacity=capacity,
+        special_features=special_features if special_features else None
+    )
+    
+    db.session.add(new_room)
+    db.session.commit()
+    
+    rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+    return render_template(
+        "admin_rooms.html",
+        user=current_user,
+        rooms=rooms,
+        success_code=201,
+        success_message=f"Room {building_name} {room_number} added successfully!"
+    )
+
+@events_blueprint.post("/admin/rooms/<int:room_id>/edit")
+@login_required
+def admin_edit_room(room_id):
+    if current_user.role != "admin":
+        return render_template(
+            "home.html",
+            user=current_user,
+            error_code=403,
+            error_message="You don't have permission to access this page."
+        )
+    
+    room = Room.query.get_or_404(room_id)
+    
+    building_name = request.form.get('building_name', '').strip()
+    room_number = request.form.get('room_number', '').strip()
+    capacity = request.form.get('capacity', type=int)
+    special_features = request.form.get('special_features', '').strip()
+    
+    if not building_name or not room_number or not capacity:
+        rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+        return render_template(
+            "admin_rooms.html",
+            user=current_user,
+            rooms=rooms,
+            error_code=400,
+            error_message="Building name, room number, and capacity are required."
+        )
+    
+    # Check if another room with the same name exists
+    existing_room = Room.query.filter(
+        Room.building_name == building_name,
+        Room.room_number == room_number,
+        Room.id != room_id
+    ).first()
+    
+    if existing_room:
+        rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+        return render_template(
+            "admin_rooms.html",
+            user=current_user,
+            rooms=rooms,
+            error_code=400,
+            error_message=f"Another room with name {building_name} {room_number} already exists."
+        )
+    
+    room.building_name = building_name
+    room.room_number = room_number
+    room.capacity = capacity
+    room.special_features = special_features if special_features else None
+    
+    db.session.commit()
+    
+    rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+    return render_template(
+        "admin_rooms.html",
+        user=current_user,
+        rooms=rooms,
+        success_code=200,
+        success_message=f"Room {building_name} {room_number} updated successfully!"
+    )
+
+@events_blueprint.post("/admin/rooms/<int:room_id>/delete")
+@login_required
+def admin_delete_room(room_id):
+    if current_user.role != "admin":
+        return render_template(
+            "home.html",
+            user=current_user,
+            error_code=403,
+            error_message="You don't have permission to access this page."
+        )
+    
+    room = Room.query.get_or_404(room_id)
+    
+    # Check if room is being used in any sessions
+    sessions_using_room = Session.query.filter_by(room_id=room_id).count()
+    
+    if sessions_using_room > 0:
+        rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+        return render_template(
+            "admin_rooms.html",
+            user=current_user,
+            rooms=rooms,
+            error_code=400,
+            error_message=f"Cannot delete room {room.building_name} {room.room_number} because it has {sessions_using_room} scheduled session(s)."
+        )
+    
+    room_name = f"{room.building_name} {room.room_number}"
+    db.session.delete(room)
+    db.session.commit()
+    
+    rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+    return render_template(
+        "admin_rooms.html",
+        user=current_user,
+        rooms=rooms,
+        success_code=200,
+        success_message=f"Room {room_name} deleted successfully!"
     )
