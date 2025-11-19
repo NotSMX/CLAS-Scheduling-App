@@ -45,9 +45,9 @@ def schedule():
         
         # Determine session type for display
         session_type = "Open"
-        if "Closed" in format_type or "closed" in (session_obj.Event.special_request or "").lower():
+        if "Closed" in format_type or "closed" in (session_obj.event.special_request or "").lower():
             session_type = "Closed"
-        elif "Family" in (session_obj.Event.special_request or ""):
+        elif "Family" in (session_obj.event.special_request or ""):
             session_type = "Family Friendly"
         
         session_list.append({
@@ -58,7 +58,7 @@ def schedule():
             'start_time': start_time.strftime("%I:%M %p") if start_time else "",
             'end_time': end_time.strftime("%I:%M %p") if end_time else "",
             'type': session_type,
-            'description': session_obj.Event.course_title or title
+            'description': session_obj.event.course_title or title
         })
     
     return render_template("schedule.html", sessions=session_list, user=current_user if current_user.is_authenticated else None)
