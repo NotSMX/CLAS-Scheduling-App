@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Options - {{ event.session_title }}{% endblock %}
+
+{% block content %}
+<div class="shell">
+  <h2 class="section-title">Choose a Schedule for "{{ event.session_title }}"</h2>
+  
+  <div class="card">
+    <div style="margin-bottom: 24px; padding: 16px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #0ea5e9;">
+      <h3 style="margin: 0 0 8px 0; color: #0369a1; font-size: 1rem;">Event Details</h3>
+      <p style="margin: 0; color: #075985; font-size: 0.9rem;">
+        <strong>Course:</strong> {{ event.department }} {{ event.course_number }} - {{ event.course_title }}<br>
+        <strong>Duration:</strong> {{ event.session_length }} minutes<br>
+        <strong>Students:</strong> {{ event.num_students }}<br>
+        {% if event.room_request %}
+        <strong>Room Preference:</strong> {{ event.room_request }}
+        {% endif %}
+      </p>
+    </div>
+
+    <h3 style="margin-bottom: 16px; font-size: 1.1rem;">Available Time Slots</h3>
+    
+    {% if options %}
+    <form action="{{ url_for('events.confirm_schedule', event_id=event.id) }}" method="post">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for option in options %}
+        <label class="schedule-option-card" style="display: flex; align-items: center; padding: 16px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+          <input type="radio" name="schedule_option" value="{{ loop.index0 }}" required 
+                 style="margin-right: 16px; width: 20px; height: 20px; cursor: pointer;"
+                 data-start-time="{{ option.start_time.strftime('%H:%M') }}"
+                 data-room-id="{{ option.room.id }}">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <strong style="font-size: 1.05rem; color: var(--ink);">
+                {{ option.start_time.strftime('%I:%M %p') }} - {{ option.end_time.strftime('%I:%M %p') }}
+              </strong>
+              {% if option.is_preferred %}
+              <span class="badge" style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">
+                Preferred Room
+              </span>
+              {% endif %}
+            </div>
+            <div style="color: #6b7280; font-size: 0.9rem;">
+              <strong>Room:</strong> {{ option.room_name }} · 
+              <strong>Capacity:</strong> {{ option.room.capacity }} people
+              {% if option.room.special_features %}
+              · {{ option.room.special_features }}
+              {% endif %}
+            </div>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+
+      <input type="hidden" name="start_time" id="selected_start_time">
+      <input type="hidden" name="room_id" id="selected_room_id">
+
+      <div style="margin-top: 24px; display: flex; gap: 12px;">
+        <button type="submit" class="btn">Confirm Schedule</button>
+        <a href="{{ url_for('events.events_page') }}" class="btn-outline">Cancel</a>
+      </div>
+    </form>
+    {% else %}
+    <p style="color: #6b7280;">No available time slots found. Please contact an administrator.</p>
+    <a href="{{ url_for('events.events_page') }}" class="btn" style="margin-top: 16px;">Back to Events</a>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  const radios = document.querySelectorAll('input[name="schedule_option"]');
+  const startTimeInput = document.getElementById('selected_start_time');
+  const roomIdInput = document.getElementById('selected_room_id');
+  
+  radios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      startTimeInput.value = this.dataset.startTime;
+      roomIdInput.value = this.dataset.roomId;
+    });
+  });
+
+  // Add hover effects
+  const optionCards = document.querySelectorAll('.schedule-option-card');
+  optionCards.forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      this.style.borderColor = '#3b82f6';
+      this.style.backgroundColor = '#f0f9ff';
+    });
+    card.addEventListener('mouseleave', function() {
+      const radio = this.querySelector('input[type="radio"]');
+      if (!radio.checked) {
+        this.style.borderColor = '#e5e7eb';
+        this.style.backgroundColor = 'transparent';
+      }
+    });
+    
+    const radio = card.querySelector('input[type="radio"]');
+    radio.addEventListener('change', function() {
+      optionCards.forEach(c => {
+        c.style.borderColor = '#e5e7eb';
+        c.style.backgroundColor = 'transparent';
+      });
+      if (this.checked) {
+        card.style.borderColor = '#3b82f6';
+        card.style.backgroundColor = '#eff6ff';
+      }
+    });
+  });
+</script>
+
+<style>
+  .schedule-option-card input[type="radio"]:checked {
+    accent-color: #3b82f6;
+  }
+</style>
+{% endblock %}
