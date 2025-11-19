@@ -19,18 +19,21 @@
         <a href="{{ url_for('events.events_page') }}">My Events</a>
         <a href="{{ url_for('main.profile') }}">Profile</a>
         <a href="{{ url_for('main.settings_page') }}">Settings</a>
-        <form action="{{ url_for('main.api_logout') }}" method="post" style="display:inline;">
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin.view_sessions') }}">Admin</a>
+        {% endif %}
+        <form action="{{ url_for('auth.api_logout') }}" method="post">
           <button class="btn-small" type="submit">Logout</button>
         </form>
       {% else %}
-        <a class="btn-small" href="{{ url_for('main.login') }}">Log in</a>
+        <a class="btn-small" href="{{ url_for('auth.login') }}">Log in</a>
       {% endif %}
     </nav>
   </header>
 
   <div class="announcement">
     Submission Deadline for CLAS Spring: Feb 12, 5pm
-    <button class="badge">View Details</button>
+    <button class="announcement-button">View Details</button>
   </div>
 
   <!-- Hero. I made this for phone compatibility -->
@@ -60,7 +63,7 @@
         {% if current_user.is_authenticated %}
         <a class="link" href="{{ url_for('events.events_page') }}">View</a>
         {% else %}
-        <a class="link" href="{{ url_for('main.login') }}">Sign in</a>
+        <a class="link" href="{{ url_for('auth.login') }}">Sign in</a>
         {% endif %}
       </div>
     </section>
