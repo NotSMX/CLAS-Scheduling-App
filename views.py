@@ -119,7 +119,12 @@ def api_settings():
                 error_code=400,
                 error_message="Password must be at least 8 characters."
             )
-        
+        if len(new_password) > 100:
+            return render_template(
+                "register.html",
+                error_code=400,
+                error_message="Password must be at most 100 characters."
+            )
         if not any(ch.isdigit() for ch in new_password):
             return render_template(
                 "register.html",
@@ -132,6 +137,30 @@ def api_settings():
                 "register.html",
                 error_code=400,
                 error_message="Password must include at least one special character."
+            )
+        if new_password == new_password.lower():
+            return render_template(
+                "register.html",
+                error_code=400,
+                error_message="Password must have at least one uppercase letter."
+            )
+        if new_password == new_password.upper():
+            return render_template(
+                "register.html",
+                error_code=400,
+                error_message="Password must have at least one lowercase letter."
+            )
+        char_counter = dict()
+        for i in new_password:
+            if i in char_counter:
+                char_counter[i] += 1
+            else:
+                char_counter[i] = 1
+        if len(char_counter) < len(new_password) // 2:
+            return render_template(
+                "register.html",
+                error_code=400,
+                error_message="Password must include more unique characters."
             )
         current_user.set_password(new_password)
 
