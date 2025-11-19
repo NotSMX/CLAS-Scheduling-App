@@ -8,6 +8,7 @@
     <div class="schedule-title-block">
       <h1>CLAS Schedule</h1>
       <p>browse sessions by building, dept, or type.</p>
+    </div>
   </header>
 
   <section class="schedule-filters">
@@ -18,6 +19,8 @@
       <option value="CS">CS</option>
       <option value="BIO">BIO</option>
       <option value="MUS">MUS</option>
+      <option value="MATH">MATH</option>
+      <option value="ENG">ENG</option>
     </select>
 
     <select id="building" class="filter-select">
@@ -25,6 +28,7 @@
       <option value="Lovejoy">Lovejoy</option>
       <option value="Diamond">Diamond</option>
       <option value="Keyes">Keyes</option>
+      <option value="Gordon">Gordon</option>
     </select>
 
     <select id="type" class="filter-select">
@@ -36,45 +40,22 @@
   </section>
 
   <section id="sessions" class="schedule-grid">
-    <!-- sample data; wired for modal + filters -->
+    {% for session in sessions %}
     <div class="session-card"
-         data-dept="CS"
-         data-building="Lovejoy"
-         data-type="Open"
-         data-text="cs 321 software engineering showcase lovejoy 100 open"
-         data-title="CS 321 Software Engineering Showcase"
-         data-meta="CS · Lovejoy 100 · 10:00–11:30 AM"
-         data-description="Student project demos and presentations from CS 321.">
-      <div class="session-tag">Open</div>
-      <h3 class="session-title">CS 321 Software Engineering Showcase</h3>
-      <p class="session-meta">CS · Lovejoy 100 · 10:00–11:30 AM</p>
+         data-dept="{{ session.dept }}"
+         data-building="{{ session.building }}"
+         data-type="{{ session.type }}"
+         data-text="{{ session.title|lower }} {{ session.dept|lower }} {{ session.building|lower }} {{ session.room|lower }} {{ session.type|lower }}"
+         data-title="{{ session.title }}"
+         data-meta="{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}"
+         data-description="{{ session.description }}">
+      <div class="session-tag{% if session.type == 'Closed' %} session-tag-closed{% elif session.type == 'Family Friendly' %} session-tag-family{% endif %}">
+        {{ session.type }}
+      </div>
+      <h3 class="session-title">{{ session.title }}</h3>
+      <p class="session-meta">{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}</p>
     </div>
-
-    <div class="session-card"
-         data-dept="BIO"
-         data-building="Diamond"
-         data-type="Closed"
-         data-text="bio 142 poster session diamond 145 closed"
-         data-title="BIO 142 Poster Session"
-         data-meta="BIO · Diamond 145 · 1:00–2:30 PM"
-         data-description="Poster presentations for BIO 142 research projects.">
-      <div class="session-tag session-tag-closed">Closed</div>
-      <h3 class="session-title">BIO 142 Poster Session</h3>
-      <p class="session-meta">BIO · Diamond 145 · 1:00–2:30 PM</p>
-    </div>
-
-    <div class="session-card"
-         data-dept="MUS"
-         data-building="Gordon"
-         data-type="Family Friendly"
-         data-text="music clas recital gordon 1 family friendly open"
-         data-title="Music & CLAS Recital"
-         data-meta="MUS · Gordon 1 · 3:00–4:00 PM"
-         data-description="Recital featuring CLAS performances; open to families and guests.">
-      <div class="session-tag session-tag-family">Family Friendly</div>
-      <h3 class="session-title">Music & CLAS Recital</h3>
-      <p class="session-meta">MUS · Gordon 1 · 3:00–4:00 PM</p>
-    </div>
+    {% endfor %}
   </section>
 
   <p id="emptyState" class="empty-state" style="display:none;">no sessions match that.</p>
