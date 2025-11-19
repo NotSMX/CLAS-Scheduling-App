@@ -3,18 +3,27 @@ from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Session, Event
 from oauth_client import google
 import re
-import csv
 from flask import current_app
 
 auth_blueprint = Blueprint('auth', __name__)
 
-def load_faculty_emails():
-    path = current_app.config["FACULTY_LIST_PATH"]
-    try:
-        with open(path) as f:
-            return [row["email"].strip().lower() for row in csv.DictReader(f)]
-    except Exception:
-        return []
+def get_role_from_email(email: str):
+    email = (email or "").lower().strip()
+    if not email.endswith("@colby.edu"):
+        return None
+
+    admin_emails = [e.strip().lower() for e in current_app.config.get("ADMIN_EMAILS", [])]
+    if email in admin_emails:
+        return "admin"
+
+    # treat emails with digits before @ as students
+    local_part = email.split("@")[0]
+    if re.search(r"\d", local_part):
+        return None
+
+    # default is faculty
+    return "faculty"
+
 
 @auth_blueprint.route('/login/google')
 def login_google():
@@ -36,6 +45,7 @@ def authorize_google():
             error_message="Google login was denied."
         )
     
+    # Exchange code for access token
     token = google.authorize_access_token()
     userinfo_endpoint = google.server_metadata['userinfo_endpoint']
     resp = google.get(userinfo_endpoint)
@@ -45,35 +55,29 @@ def authorize_google():
     name = user_info.get('name', 'Colby User')
     picture = user_info.get("picture")
 
-    # Must be @colby.edu
-    if not email.endswith("@colby.edu"):
+    role = get_role_from_email(email)
+
+    if role is None:
+        # Either not @colby.edu or looks like a student account
         return render_template(
             "login.html",
-            error_code=401,
-            error_message="You must log in with a Colby email."
-        )
-
-    # Check if faculty (on the CSV list)
-    faculty_emails = load_faculty_emails()
-    admin_emails = [e.strip().lower() for e in current_app.config["ADMIN_EMAILS"]]
-
-    if email in admin_emails:
-        role = "admin"
-    elif email in faculty_emails:
-        role = "faculty"
-    else:
-        return render_template(
-            "login.html",
+            user=current_user,
             error_code=403,
-            error_message="Only verified Colby faculty can log in."
+            error_message="Only verified Colby faculty/admin can log in. Students do not need an account."
         )
 
     # Create or update user
     user = User.query.filter_by(email=email).first()
     if not user:
-        user = User(name=name, email=email, role=role, profile_pic_url=picture)
+        user = User(
+            name=name,
+            email=email,
+            role=role,
+            profile_pic_url=picture
+        )
         db.session.add(user)
     else:
+        # keep role in sync with backend logic
         user.role = role
 
     db.session.commit()

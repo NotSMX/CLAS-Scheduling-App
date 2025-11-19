@@ -1,5 +1,8 @@
 from authlib.integrations.flask_client import OAuth
 import os
+print("DEBUG CLIENT_ID =", os.getenv("CLIENT_ID"))
+print("DEBUG CLIENT_SECRET is None?", os.getenv("CLIENT_SECRET") is None)
+
 
 oauth = OAuth()
 google = None
@@ -18,3 +21,4 @@ def init_oauth(app):
         },
         redirect_uri='http://127.0.0.1:5000/authorize/google'
     )
+
