@@ -17,6 +17,9 @@
       {% if current_user.is_authenticated %}
         <a href="{{ url_for('events.event_create_page') }}">Create</a>
         <a href="{{ url_for('events.events_page') }}">My Events</a>
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('events.admin_rooms_page') }}">Manage Rooms</a>
+        {% endif %}
         <a href="{{ url_for('main.profile') }}">Profile</a>
         <a href="{{ url_for('main.settings_page') }}">Settings</a>
         <form action="{{ url_for('main.api_logout') }}" method="post" style="display:inline;">
