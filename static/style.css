@@ -103,6 +103,7 @@ nav form button {
   justify-content: space-between;
   gap: 12px;
   padding: 6px 24px;
+  height: 55px;
   background: #fef7e0;
   color: #7c5e10;
   font-weight: 500;
