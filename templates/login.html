@@ -23,6 +23,10 @@
       <input type="text" name="email" placeholder="Email Address" required />
       <input type="password" name="password" placeholder="Password" required />
       <button type="submit">Log In</button>
+      <a class="btn login-google" href="{{ url_for('auth.login_google') }}">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png" class="google-icon" />
+          Log in with Google
+      </a>
     </form>
 
     <a href="{{ url_for('main.register') }}">Create an Account</a>

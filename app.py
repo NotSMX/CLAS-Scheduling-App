@@ -4,6 +4,7 @@ from views import main_blueprint
 from events import events_blueprint
 from models import db, User, Session, Event, Room
 from admin import admin_blueprint
+from oauth_client import init_oauth
 import os
 from dotenv import load_dotenv
 
@@ -17,6 +18,12 @@ app.register_blueprint(events_blueprint)
 app.register_blueprint(admin_blueprint)
 
 db.init_app(app)
+
+# Initialize OAuth clients (google) after app is created to avoid circular import
+init_oauth(app)
+
+from auth import auth_blueprint
+app.register_blueprint(auth_blueprint)
 
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
