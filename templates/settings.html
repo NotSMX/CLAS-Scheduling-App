@@ -24,13 +24,6 @@
         <label>Full Name</label>
         <input type="text" name="name" value="{{ user.name }}" placeholder="Your name" />
 
-        <label>Role</label>
-        <select name="role">
-          <option value="student" {{ 'selected' if user.role=='student' else '' }}>Student</option>
-          <option value="faculty" {{ 'selected' if user.role=='faculty' else '' }}>Faculty</option>
-          <option value="admin" {{ 'selected' if user.role=='admin' else '' }}>Admin</option>
-        </select>
-
         <label>Profile Photo URL</label>
         <input type="text" name="profile_pic_url" value="{{ user.profile_pic_url or '' }}" placeholder="https://…" />
 
