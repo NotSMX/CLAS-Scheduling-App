@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Admin Dashboard - Submitted Sessions</h2>
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Submitted By</th>
+      <th>Room</th>
+      <th>Start Time</th>
+      <th>End Time</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for session in sessions %}
+    <tr>
+      <td>{{ session.event.session_title }}</td>         {# lowercase 'event' #}
+      <td>{{ session.user.name }}</td>
+      <td>{{ session.room.building_name }} {{ session.room.room_number }}</td>
+      <td>{{ session.start_time or "Not set" }}</td>
+      <td>{{ session.end_time or "Not set" }}</td>
+      <td>{{ session.event.status }}</td>
+      <td>
+        <form action="{{ url_for('admin.update_session', session_id=session.id) }}" method="post" style="display:inline;">
+          <input type="time" name="start_time" value="{{ session.start_time }}">
+          <input type="time" name="end_time" value="{{ session.end_time }}">
+          <select name="status">
+            <option value="draft" {% if session.event.status == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="approved" {% if session.event.status == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="rejected" {% if session.event.status == 'rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+          <button type="submit">Update</button>
+        </form>
+        <form action="{{ url_for('admin.delete_session', session_id=session.id) }}" method="post" style="display:inline;">
+          <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
