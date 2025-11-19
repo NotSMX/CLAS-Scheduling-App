@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Rooms - Admin{% endblock %}
+
+{% block content %}
+<div class="shell">
+  <h2 class="section-title">Manage Rooms</h2>
+  
+  <div class="card">
+    {% if success_code %}
+      <div class="alert alert-success">{{ success_message }}</div>
+    {% endif %}
+
+    {% if error_code %}
+      <div class="alert alert-error">{{ error_message }}</div>
+    {% endif %}
+
+    {% if info_code %}
+      <div class="alert alert-info">{{ info_message }}</div>
+    {% endif %}
+
+    <div class="actions" style="margin-bottom: 24px;">
+      <button class="btn" onclick="showAddRoomModal()">Add New Room</button>
+    </div>
+
+    {% if rooms %}
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f3f4f6; text-align: left;">
+            <th style="padding: 12px; border-bottom: 2px solid #e5e7eb;">Building</th>
+            <th style="padding: 12px; border-bottom: 2px solid #e5e7eb;">Room Number</th>
+            <th style="padding: 12px; border-bottom: 2px solid #e5e7eb;">Capacity</th>
+            <th style="padding: 12px; border-bottom: 2px solid #e5e7eb;">Features</th>
+            <th style="padding: 12px; border-bottom: 2px solid #e5e7eb;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for room in rooms %}
+          <tr style="border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 12px;">{{ room.building_name }}</td>
+            <td style="padding: 12px;">{{ room.room_number }}</td>
+            <td style="padding: 12px;">{{ room.capacity }}</td>
+            <td style="padding: 12px;">{{ room.special_features or 'None' }}</td>
+            <td style="padding: 12px; display: flex; gap: 8px;">
+              <button 
+                class="btn-small" 
+                type="button"
+                data-room-id="{{ room.id }}"
+                data-building="{{ room.building_name }}"
+                data-room-number="{{ room.room_number }}"
+                data-capacity="{{ room.capacity }}"
+                data-features="{{ room.special_features or '' }}"
+                onclick="editRoom(this)">
+                Edit
+              </button>
+              <form action="{{ url_for('events.admin_delete_room', room_id=room.id) }}" method="post" style="margin: 0;" class="delete-room-form">
+                <button type="submit" class="btn-small" style="background:#e57373;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>No rooms have been added yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add Room Modal -->
+<div id="addRoomModal" class="session-modal">
+  <div class="session-modal-content" style="max-width: 500px;">
+    <button class="session-modal-close" onclick="closeAddRoomModal()">×</button>
+    <h2 style="margin-bottom: 24px;">Add New Room</h2>
+    
+    <form action="{{ url_for('events.admin_add_room') }}" method="post">
+      <label for="building_name">Building Name</label>
+      <input type="text" name="building_name" placeholder="e.g., Lovejoy, Diamond" required />
+      
+      <label for="room_number">Room Number</label>
+      <input type="text" name="room_number" placeholder="e.g., 100, 215" required />
+      
+      <label for="capacity">Capacity</label>
+      <input type="number" name="capacity" placeholder="e.g., 30" required />
+      
+      <label for="special_features">Special Features (optional)</label>
+      <input type="text" name="special_features" placeholder="e.g., Projector, Whiteboard" />
+      
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit" class="btn">Add Room</button>
+        <button type="button" class="btn-outline" onclick="closeAddRoomModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Room Modal -->
+<div id="editRoomModal" class="session-modal">
+  <div class="session-modal-content" style="max-width: 500px;">
+    <button class="session-modal-close" onclick="closeEditRoomModal()">×</button>
+    <h2 style="margin-bottom: 24px;">Edit Room</h2>
+    
+    <form id="editRoomForm" method="post">
+      <input type="hidden" id="edit_room_id" name="room_id" />
+      
+      <label for="building_name">Building Name</label>
+      <input type="text" id="edit_building_name" name="building_name" required />
+      
+      <label for="room_number">Room Number</label>
+      <input type="text" id="edit_room_number" name="room_number" required />
+      
+      <label for="capacity">Capacity</label>
+      <input type="number" id="edit_capacity" name="capacity" required />
+      
+      <label for="special_features">Special Features (optional)</label>
+      <input type="text" id="edit_special_features" name="special_features" />
+      
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button type="submit" class="btn">Save Changes</button>
+        <button type="button" class="btn-outline" onclick="closeEditRoomModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Add room modal functions
+  function showAddRoomModal() {
+    document.getElementById('addRoomModal').classList.add('show');
+  }
+  
+  function closeAddRoomModal() {
+    document.getElementById('addRoomModal').classList.remove('show');
+  }
+  
+  // Edit room function - gets data from button attributes
+  function editRoom(button) {
+    const roomId = button.getAttribute('data-room-id');
+    const building = button.getAttribute('data-building');
+    const roomNumber = button.getAttribute('data-room-number');
+    const capacity = button.getAttribute('data-capacity');
+    const features = button.getAttribute('data-features');
+    
+    document.getElementById('edit_room_id').value = roomId;
+    document.getElementById('edit_building_name').value = building;
+    document.getElementById('edit_room_number').value = roomNumber;
+    document.getElementById('edit_capacity').value = capacity;
+    document.getElementById('edit_special_features').value = features;
+    
+    const form = document.getElementById('editRoomForm');
+    form.action = '/admin/rooms/' + roomId + '/edit';
+    
+    document.getElementById('editRoomModal').classList.add('show');
+  }
+  
+  function closeEditRoomModal() {
+    document.getElementById('editRoomModal').classList.remove('show');
+  }
+  
+  // Close modals on outside click
+  document.getElementById('addRoomModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeAddRoomModal();
+    }
+  });
+  
+  document.getElementById('editRoomModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeEditRoomModal();
+    }
+  });
+  
+  // Confirm delete with JavaScript
+  document.querySelectorAll('.delete-room-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+      if (!confirm('Are you sure you want to delete this room?')) {
+        e.preventDefault();
+      }
+    });
+  });
+</script>
+{% endblock %}

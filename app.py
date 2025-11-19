@@ -13,6 +13,7 @@ load_dotenv()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clas_app.db'
 app.config['SECRET_KEY'] = 'dev'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
 app.register_blueprint(admin_blueprint)
@@ -21,9 +22,16 @@ db.init_app(app)
 
 # Initialize OAuth clients (google) after app is created to avoid circular import
 init_oauth(app)
+# for the .env file
+load_dotenv()
 
 from auth import auth_blueprint
 app.register_blueprint(auth_blueprint)
+
+# list of admin emails in .env
+app.config["ADMIN_EMAILS"] = os.getenv("ADMIN_EMAILS", "").split(",")
+# this is for if we choose to have valid faculty listed in a csv file
+# app.config["FACULTY_LIST_PATH"] = "instance/faculty_list.csv"
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'

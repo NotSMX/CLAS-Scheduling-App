@@ -3,8 +3,26 @@ from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Session, Event
 from oauth_client import google
 import re
+from flask import current_app
 
 auth_blueprint = Blueprint('auth', __name__)
+
+def get_role_from_email(email: str):
+    email = (email or "").lower().strip()
+    if not email.endswith("@colby.edu"):
+        return None
+
+    admin_emails = [e.strip().lower() for e in current_app.config.get("ADMIN_EMAILS", [])]
+    if email in admin_emails:
+        return "admin"
+
+    # treat emails with digits before @ as students
+    local_part = email.split("@")[0]
+    if re.search(r"\d", local_part):
+        return None
+
+    # default is faculty
+    return "faculty"
 
 
 @auth_blueprint.route('/login/google')
@@ -27,37 +45,46 @@ def authorize_google():
             error_message="Google login was denied."
         )
     
+    # Exchange code for access token
     token = google.authorize_access_token()
     userinfo_endpoint = google.server_metadata['userinfo_endpoint']
     resp = google.get(userinfo_endpoint)
     user_info = resp.json()
 
-    email = user_info.get('email')
+    email = (user_info.get('email') or "").lower().strip()
+    name = user_info.get('name', 'Colby User')
+    picture = user_info.get("picture")
 
-    if not email.endswith("@colby.edu"):
+    role = get_role_from_email(email)
+
+    if role is None:
+        # Either not @colby.edu or looks like a student account
         return render_template(
             "login.html",
             user=current_user,
-            error_code=401,
-            error_message="You must use a Colby email address to register."
+            error_code=403,
+            error_message="Only verified Colby faculty/admin can log in. Students do not need an account."
         )
 
+    # Create or update user
     user = User.query.filter_by(email=email).first()
-    picture = user_info.get("picture")
     if not user:
-        # Create a new user if not exists
         user = User(
-            name=user_info.get('name', 'Google User'),
+            name=name,
             email=email,
-            role='admin',  # Default role
+            role=role,
             profile_pic_url=picture
         )
         db.session.add(user)
-        db.session.commit()
+    else:
+        # keep role in sync with backend logic
+        user.role = role
 
+    db.session.commit()
     login_user(user)
 
     return redirect(url_for('main.home'))
+
 
 @auth_blueprint.get("/register")
 def register():
@@ -153,24 +180,33 @@ def api_register():
             error_message="Please fill in all fields."
         )
     
-    if User.query.filter_by(email=email).first():
-        return render_template(
-            "register.html",
-            user=current_user,
-            error_code=400,
-            error_message="Email already registered!"
-        )
+#     if User.query.filter_by(email=email).first():
+#         return render_template(
+#             "register.html",
+#             user=current_user,
+#             error_code=400,
+#             error_message="Email already registered!"
+#         )
     
-    new_user = User(name=user, email=email, role=role)
-    new_user.set_password(password)
-    db.session.add(new_user)
-    db.session.commit()
+#     new_user = User(name=user, email=email, role=role)
+#     new_user.set_password(password)
+#     db.session.add(new_user)
+#     db.session.commit()
 
+#     return render_template(
+#         "login.html",
+#         user=current_user,
+#         success_code=201,
+#         success_message="Account created successfully! You can now log in."
+#     )
+
+@auth_blueprint.post("/api/v1/register")
+def api_register():
     return render_template(
-        "login.html",
+        "register.html",
         user=current_user,
-        success_code=201,
-        success_message="Account created successfully! You can now log in."
+        error_code=403,
+        error_message="Manual registration is disabled. Faculty must log in using Google, and students do not need an account."
     )
 
 @auth_blueprint.post("/api/v1/logout")
