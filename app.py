@@ -8,9 +8,15 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 load_dotenv()
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgres", "postgresql", 1)
+
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
 
@@ -31,7 +37,9 @@ def static_files(filename):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
+        
+        # Import and run seeding
+        from seed_rooms import seed_rooms
+        seed_rooms()  # automatically seed if needed
+    
     app.run(debug=True)
-
-with app.app_context():
-    db.create_all()  # Create database tables
