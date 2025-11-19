@@ -1,7 +1,7 @@
 from collections import defaultdict
 from models import Session, Event, Room, db
 from datetime import datetime, time, timedelta
-from sqlalchemy import and_
+from sqlalchemy import and_, cast, String
 
 def build_schedule_suggestions(events):
     """
@@ -76,8 +76,8 @@ class Scheduler:
         # Try to honor room request first
         if event.room_request:
             requested_rooms = Room.query.filter(
-                Room.building_name.contains(event.room_request) |
-                Room.room_number.contains(event.room_request)
+                (Room.building_name.ilike(f"%{event.room_request}%")) |
+                (cast(Room.room_number, String).ilike(f"%{event.room_request}%"))
             ).all()
             
             for room in requested_rooms:
