@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Session, Event, Room
+import re
 
 main_blueprint = Blueprint("main", __name__)
 
@@ -112,12 +113,25 @@ def api_settings():
                 error_code=400,
                 error_message="Passwords do not match."
             )
-        if len(new_password) < 6:
+        if len(new_password) < 8:
             return render_template(
-                "settings.html",
-                user=current_user,
+                "register.html",
                 error_code=400,
-                error_message="Password must be at least 6 characters."
+                error_message="Password must be at least 8 characters."
+            )
+        
+        if not any(ch.isdigit() for ch in new_password):
+            return render_template(
+                "register.html",
+                error_code=400,
+                error_message="Password must include at least one number."
+            )
+        
+        if not any(re.match(r"[^\w]", ch) for ch in new_password):
+            return render_template(
+                "register.html",
+                error_code=400,
+                error_message="Password must include at least one special character."
             )
         current_user.set_password(new_password)
 

@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Session, Event
 from oauth_client import google
+import re
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -94,6 +95,27 @@ def api_register():
     email = (request.form.get("email") or "").strip()
     password = request.form.get("password") or ""
     role = (request.form.get("role") or "").strip()
+
+    if len(password) < 8:
+        return render_template(
+            "register.html",
+            error_code=400,
+            error_message="Password must be at least 8 characters."
+        )
+    
+    if not any(ch.isdigit() for ch in password):
+        return render_template(
+            "register.html",
+            error_code=400,
+            error_message="Password must include at least one number."
+        )
+    
+    if not any(re.match(r"[^\w]", ch) for ch in password):
+        return render_template(
+            "register.html",
+            error_code=400,
+            error_message="Password must include at least one special character."
+        )
 
     if not user or not email or not password or not role:
         return render_template(

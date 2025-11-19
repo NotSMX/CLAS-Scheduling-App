@@ -553,6 +553,13 @@ a {
   gap: 16px
 }
 
+.password-info {
+  color: #666;
+  margin-bottom: 16px;
+  font-size: .95rem;
+  text-align: center;
+}
+
 footer {
   background: #fff;
   border-top: 1px solid var(--border);
