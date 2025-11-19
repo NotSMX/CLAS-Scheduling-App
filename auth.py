@@ -16,6 +16,10 @@ def get_role_from_email(email: str):
     if email in admin_emails:
         return "admin"
 
+    professor_emails = [e.strip().lower() for e in current_app.config.get("FACULTY_EMAILS", [])]
+    if email in professor_emails:
+        return "faculty"
+
     # treat emails with digits before @ as students
     local_part = email.split("@")[0]
     if re.search(r"\d", local_part):
