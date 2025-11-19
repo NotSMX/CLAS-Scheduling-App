@@ -20,8 +20,12 @@ def login_google():
 @auth_blueprint.route('/authorize/google')
 def authorize_google():
     if 'error' in request.args:
-        flash("Google login was denied.", "danger")
-        return redirect(url_for("auth.login"))
+        return render_template(
+            "login.html",
+            user=current_user,
+            error_code=401,
+            error_message="Google login was denied."
+        )
     
     token = google.authorize_access_token()
     userinfo_endpoint = google.server_metadata['userinfo_endpoint']
@@ -31,8 +35,12 @@ def authorize_google():
     email = user_info.get('email')
 
     if not email.endswith("@colby.edu"):
-        flash("You must use a Colby email address to register.", "danger")
-        return redirect(url_for("auth.login"))
+        return render_template(
+            "login.html",
+            user=current_user,
+            error_code=401,
+            error_message="You must use a Colby email address to register."
+        )
 
     user = User.query.filter_by(email=email).first()
     picture = user_info.get("picture")

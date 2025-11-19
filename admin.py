@@ -20,7 +20,6 @@ def admin_required(func):
 @login_required
 @admin_required
 def view_sessions():
-    print("****************************************Fetching all sessions for admin view...")
     # preload event, room, user
     sessions = Session.query.options(
         db.joinedload(Session.event),
