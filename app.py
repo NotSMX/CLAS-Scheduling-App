@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 load_dotenv()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clas_app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace("postgres", "postgresql", 1)
 app.config['SECRET_KEY'] = 'dev'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -45,7 +45,11 @@ def load_user(user_id):
 def static_files(filename):
     return send_from_directory('static', filename)
 
+# This for some reason doesn't run in Heroku
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables
     app.run(debug=True)
+
+with app.app_context():
+    db.create_all()  # Create database tables
