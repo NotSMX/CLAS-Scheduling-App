@@ -13,6 +13,7 @@ load_dotenv()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clas_app.db'
 app.config['SECRET_KEY'] = 'dev'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
 app.register_blueprint(admin_blueprint)
