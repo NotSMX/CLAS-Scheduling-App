@@ -3,9 +3,18 @@ from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Session, Event
 from oauth_client import google
 import re
+import csv
+from flask import current_app
 
 auth_blueprint = Blueprint('auth', __name__)
 
+def load_faculty_emails():
+    path = current_app.config["FACULTY_LIST_PATH"]
+    try:
+        with open(path) as f:
+            return [row["email"].strip().lower() for row in csv.DictReader(f)]
+    except Exception:
+        return []
 
 @auth_blueprint.route('/login/google')
 def login_google():
@@ -32,32 +41,46 @@ def authorize_google():
     resp = google.get(userinfo_endpoint)
     user_info = resp.json()
 
-    email = user_info.get('email')
+    email = (user_info.get('email') or "").lower().strip()
+    name = user_info.get('name', 'Colby User')
+    picture = user_info.get("picture")
 
+    # Must be @colby.edu
     if not email.endswith("@colby.edu"):
         return render_template(
             "login.html",
-            user=current_user,
             error_code=401,
-            error_message="You must use a Colby email address to register."
+            error_message="You must log in with a Colby email."
         )
 
+    # Check if faculty (on the CSV list)
+    faculty_emails = load_faculty_emails()
+    admin_emails = [e.strip().lower() for e in current_app.config["ADMIN_EMAILS"]]
+
+    if email in admin_emails:
+        role = "admin"
+    elif email in faculty_emails:
+        role = "faculty"
+    else:
+        return render_template(
+            "login.html",
+            error_code=403,
+            error_message="Only verified Colby faculty can log in."
+        )
+
+    # Create or update user
     user = User.query.filter_by(email=email).first()
-    picture = user_info.get("picture")
     if not user:
-        # Create a new user if not exists
-        user = User(
-            name=user_info.get('name', 'Google User'),
-            email=email,
-            role='admin',  # Default role
-            profile_pic_url=picture
-        )
+        user = User(name=name, email=email, role=role, profile_pic_url=picture)
         db.session.add(user)
-        db.session.commit()
+    else:
+        user.role = role
 
+    db.session.commit()
     login_user(user)
 
     return redirect(url_for('main.home'))
+
 
 @auth_blueprint.get("/register")
 def register():
@@ -89,60 +112,69 @@ def api_login():
         success_message="Logged in successfully!"
     )
 
+# @auth_blueprint.post("/api/v1/register")
+# def api_register():
+#     user = (request.form.get("user") or "").strip()
+#     email = (request.form.get("email") or "").strip()
+#     password = request.form.get("password") or ""
+#     role = (request.form.get("role") or "").strip()
+
+#     if len(password) < 8:
+#         return render_template(
+#             "register.html",
+#             error_code=400,
+#             error_message="Password must be at least 8 characters."
+#         )
+    
+#     if not any(ch.isdigit() for ch in password):
+#         return render_template(
+#             "register.html",
+#             error_code=400,
+#             error_message="Password must include at least one number."
+#         )
+    
+#     if not any(re.match(r"[^\w]", ch) for ch in password):
+#         return render_template(
+#             "register.html",
+#             error_code=400,
+#             error_message="Password must include at least one special character."
+#         )
+
+#     if not user or not email or not password or not role:
+#         return render_template(
+#             "register.html",
+#             user=current_user,
+#             error_code=400,
+#             error_message="Please fill in all fields."
+#         )
+    
+#     if User.query.filter_by(email=email).first():
+#         return render_template(
+#             "register.html",
+#             user=current_user,
+#             error_code=400,
+#             error_message="Email already registered!"
+#         )
+    
+#     new_user = User(name=user, email=email, role=role)
+#     new_user.set_password(password)
+#     db.session.add(new_user)
+#     db.session.commit()
+
+#     return render_template(
+#         "login.html",
+#         user=current_user,
+#         success_code=201,
+#         success_message="Account created successfully! You can now log in."
+#     )
+
 @auth_blueprint.post("/api/v1/register")
 def api_register():
-    user = (request.form.get("user") or "").strip()
-    email = (request.form.get("email") or "").strip()
-    password = request.form.get("password") or ""
-    role = (request.form.get("role") or "").strip()
-
-    if len(password) < 8:
-        return render_template(
-            "register.html",
-            error_code=400,
-            error_message="Password must be at least 8 characters."
-        )
-    
-    if not any(ch.isdigit() for ch in password):
-        return render_template(
-            "register.html",
-            error_code=400,
-            error_message="Password must include at least one number."
-        )
-    
-    if not any(re.match(r"[^\w]", ch) for ch in password):
-        return render_template(
-            "register.html",
-            error_code=400,
-            error_message="Password must include at least one special character."
-        )
-
-    if not user or not email or not password or not role:
-        return render_template(
-            "register.html",
-            user=current_user,
-            error_code=400,
-            error_message="Please fill in all fields."
-        )
-    
-    if User.query.filter_by(email=email).first():
-        return render_template(
-            "register.html",
-            user=current_user,
-            error_code=400,
-            error_message="Email already registered!"
-        )
-    
-    new_user = User(name=user, email=email, role=role)
-    new_user.set_password(password)
-    db.session.add(new_user)
-    db.session.commit()
-
     return render_template(
-        "login.html",
+        "register.html",
         user=current_user,
-        success_code=201,
-        success_message="Account created successfully! You can now log in."
+        error_code=403,
+        error_message="Manual registration is disabled. Faculty must log in using Google, and students do not need an account."
     )
 
 @auth_blueprint.post("/api/v1/logout")
