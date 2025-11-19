@@ -80,6 +80,11 @@ def profile():
 def settings_page():
     return render_template("settings.html", user=current_user)
 
+@main_blueprint.get('/admin')
+@login_required
+def admin_redirect():
+    return redirect(url_for('admin.view_sessions'))
+
 @main_blueprint.post("/api/v1/login")
 def api_login():
     email = (request.form.get("email") or "").strip()

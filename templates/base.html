@@ -19,7 +19,10 @@
         <a href="{{ url_for('events.events_page') }}">My Events</a>
         <a href="{{ url_for('main.profile') }}">Profile</a>
         <a href="{{ url_for('main.settings_page') }}">Settings</a>
-        <form action="{{ url_for('main.api_logout') }}" method="post" style="display:inline;">
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin.view_sessions') }}">Admin</a>
+        {% endif %}
+        <form action="{{ url_for('main.api_logout') }}" method="post">
           <button class="btn-small" type="submit">Logout</button>
         </form>
       {% else %}
@@ -30,7 +33,7 @@
 
   <div class="announcement">
     Submission Deadline for CLAS Spring: Feb 12, 5pm
-    <button class="badge">View Details</button>
+    <button class="announcement-button">View Details</button>
   </div>
 
   <!-- Hero. I made this for phone compatibility -->
