@@ -31,6 +31,7 @@ app.register_blueprint(auth_blueprint)
 # list of admin emails in .env
 app.config["ADMIN_EMAILS"] = os.getenv("ADMIN_EMAILS", "").split(",")
 # this is for if we choose to have valid faculty listed in a csv file
+app.config["FACULTY_EMAILS"] = os.getenv("FACULTY_EMAILS", "").split(",")
 # app.config["FACULTY_LIST_PATH"] = "instance/faculty_list.csv"
 
 login_manager = LoginManager()
