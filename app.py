@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+import os
 from flask import Flask, render_template, send_from_directory
 from flask_login import LoginManager
 from views import main_blueprint
@@ -5,8 +7,9 @@ from events import events_blueprint
 from models import db, User, Session, Event, Room
 from admin import admin_blueprint
 from oauth_client import init_oauth
-import os
-from dotenv import load_dotenv
+from notifications import notifications_blueprint
+from auth import auth_blueprint
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 load_dotenv()
@@ -17,15 +20,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.register_blueprint(main_blueprint)
 app.register_blueprint(events_blueprint)
 app.register_blueprint(admin_blueprint)
+app.register_blueprint(notifications_blueprint)
 
 db.init_app(app)
+migrate = Migrate(app, db)
 
-# Initialize OAuth clients (google) after app is created to avoid circular import
+# Initialize OAuth clients
 init_oauth(app)
-# for the .env file
-load_dotenv()
 
-from auth import auth_blueprint
 app.register_blueprint(auth_blueprint)
 
 # list of admin emails in .env
@@ -46,11 +48,10 @@ def load_user(user_id):
 def static_files(filename):
     return send_from_directory('static', filename)
 
-# This for some reason doesn't run in Heroku
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Create database tables
-    app.run(debug=True)
+# # Create database tables if they don't exist
+# with app.app_context():
+#     db.create_all()
 
-with app.app_context():
-    db.create_all()  # Create database tables
+# When tesing locally, run on debug mode
+if __name__ == '__main__':
+    app.run(debug=True)

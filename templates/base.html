@@ -35,8 +35,17 @@
   </header>
 
   <div class="announcement">
-    Submission Deadline for CLAS Spring: Feb 12, 5pm
-    <button class="announcement-button">View Details</button>
+    <div class="announcement-content">
+      <span class="badge">INFO</span>
+      {% if latest_notification %}
+        {{ latest_notification.title }}
+      {% else %}
+        No announcements at this time
+      {% endif %}
+    </div>
+    <a href="{{ url_for('notifications.notifications_page') }}">
+      <button class="announcement-button">Notifications</button>
+    </a>
   </div>
 
   <!-- Hero. I made this for phone compatibility -->

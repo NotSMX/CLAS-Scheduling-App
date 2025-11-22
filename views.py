@@ -1,9 +1,24 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, login_required, current_user
-from models import db, User, Session, Event, Room
+from models import db, User, Session, Event, Room, Notification
+from datetime import datetime
 import re
 
 main_blueprint = Blueprint("main", __name__)
+
+# Make latest_notification available everywhere
+@main_blueprint.app_context_processor
+def inject_latest_notification():
+    latest = Notification.query.filter(
+        Notification.is_active == True,
+        Notification.deadline != None
+    ).order_by(Notification.deadline.asc()).first()
+    
+    if not latest:
+        # Fallback to most recent notification if no deadline set
+        latest = Notification.query.filter_by(is_active=True).order_by(Notification.created_at.desc()).first()
+    
+    return dict(latest_notification=latest)
 
 @main_blueprint.get("/")
 def landing():

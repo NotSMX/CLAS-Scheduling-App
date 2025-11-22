@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="shell">
+  <h2 class="section-title">Notifications & Announcements</h2>
+
+  <div class="card">
+    {% if success_code %}
+      <div class="alert alert-success">{{ success_message }}</div>
+    {% endif %}
+
+    {% if error_code %}
+      <div class="alert alert-error">{{ error_message }}</div>
+    {% endif %}
+
+    {% if info_code %}
+      <div class="alert alert-info">{{ info_message }}</div>
+    {% endif %}
+
+    <!-- Admin: Create New Notification Section -->
+    {% if current_user.role == "admin" %}
+    <div class="notification-create-form">
+      <h3>Create New Notification</h3>
+      
+      <form action="{{ url_for('notifications.api_create_notification') }}" method="post">
+        <div class="notification-form-grid">
+          <div class="notification-form-field">
+            <label for="title">Title</label>
+            <input type="text" name="title" id="title" placeholder="e.g., Submission Deadline for CLAS Spring" required />
+          </div>
+
+          <div class="notification-form-field">
+            <label for="priority">Priority</label>
+            <select name="priority" id="priority">
+              <option value="normal">Normal</option>
+              <option value="high">High Priority</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="notification-form-field">
+          <label for="deadline">Deadline (Optional)</label>
+          <input type="datetime-local" name="deadline" id="deadline" />
+          <small>If set, this will appear in the top banner until the deadline passes</small>
+        </div>
+
+        <div class="notification-form-field">
+          <label for="message">Message</label>
+          <textarea name="message" id="message" rows="4" placeholder="Enter your announcement message here..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%;">Create Notification</button>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- All Notifications List -->
+    <h3 class="notification-list-title">All Notifications</h3>
+
+    {% if notifications %}
+      <div class="notification-cards">
+        {% for notification in notifications %}
+        <div class="notification-card{% if notification.priority == 'urgent' %} priority-urgent{% elif notification.priority == 'high' %} priority-high{% endif %}">
+          
+          <div class="notification-card-header">
+            <div class="notification-card-info">
+              <div class="notification-card-title-row">
+                <h4>{{ notification.title }}</h4>
+                {% if notification.deadline %}
+                <span class="notification-deadline-badge">
+                  Deadline: {{ notification.deadline.strftime('%b %d, %I:%M %p') }}
+                </span>
+                {% endif %}
+                {% if notification.priority == 'urgent' %}
+                <span class="notification-priority-badge urgent">URGENT</span>
+                {% elif notification.priority == 'high' %}
+                <span class="notification-priority-badge high">HIGH</span>
+                {% endif %}
+              </div>
+              <p class="notification-card-meta">
+                Posted by {{ notification.creator.name }} • {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+              </p>
+            </div>
+            
+            {% if current_user.role == "admin" %}
+            <form class="notification-delete-form" action="{{ url_for('notifications.api_delete_notification', notification_id=notification.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this notification?');">
+              <button type="submit" class="btn-small" style="background:#e57373;">Delete</button>
+            </form>
+            {% endif %}
+          </div>
+
+          <p class="notification-card-message">{{ notification.message }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="notification-empty-state">
+        <p>No notifications yet</p>
+        <p>
+          {% if current_user.role == "admin" %}
+            Use the form above to create the first announcement
+          {% else %}
+            Check back later for important announcements
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

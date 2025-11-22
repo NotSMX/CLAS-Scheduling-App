@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Create Notification{% endblock %}
+
+{% block content %}
+<div class="shell">
+  <h2 class="section-title">Create New Notification</h2>
+  
+  <div class="card form-card">
+    {% if success_code %}
+      <div class="alert alert-success">{{ success_message }}</div>
+    {% endif %}
+
+    {% if error_code %}
+      <div class="alert alert-error">{{ error_message }}</div>
+    {% endif %}
+
+    <form action="{{ url_for('notifications.api_create_notification') }}" method="post">
+      <label for="title">Title</label>
+      <input type="text" name="title" id="title" placeholder="e.g., Submission Deadline for CLAS Spring" required />
+
+      <label for="priority">Priority</label>
+      <select name="priority" id="priority">
+        <option value="normal">Normal</option>
+        <option value="high">High Priority</option>
+        <option value="urgent">Urgent</option>
+      </select>
+
+      <label for="deadline">Deadline (Optional)</label>
+      <input type="datetime-local" name="deadline" id="deadline" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem;" />
+      <small style="color: #6b7280; font-size: 0.85rem; margin-top: 4px; display: block;">If set, this notification will appear in the top banner until the deadline passes</small>
+
+      <label for="message">Message</label>
+      <textarea name="message" id="message" rows="6" placeholder="Enter your announcement message here..." required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; resize: vertical;"></textarea>
+
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <button type="submit" class="btn">Create Notification</button>
+        <a href="{{ url_for('notifications.notifications_page') }}" class="btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
