@@ -1,24 +1,27 @@
 from authlib.integrations.flask_client import OAuth
 import os
-print("DEBUG CLIENT_ID =", os.getenv("CLIENT_ID"))
-print("DEBUG CLIENT_SECRET is None?", os.getenv("CLIENT_SECRET") is None)
-
 
 oauth = OAuth()
-google = None
+google = None  # will be set in init_oauth
+
 
 def init_oauth(app):
-    global oauth, google
-    oauth.init_app(app)
-    # register the google client; uses env vars from the app environment
-    google = oauth.register(
-        name='google',
-        client_id=os.environ.get('CLIENT_ID'),
-        client_secret=os.environ.get('CLIENT_SECRET'),
-        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-        client_kwargs={
-            'scope': 'openid email profile'
-        },
-        redirect_uri='http://127.0.0.1:5000/authorize/google'
-    )
+    global google
 
+    oauth.init_app(app)
+
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+
+    app.logger.debug(f"DEBUG CLIENT_ID = {client_id}")
+    app.logger.debug(f"DEBUG CLIENT_SECRET is None? {client_secret is None}")
+
+    google = oauth.register(
+        name="google",
+        client_id=client_id,
+        client_secret=client_secret,
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_kwargs={
+            "scope": "openid email profile"
+        },
+    )
