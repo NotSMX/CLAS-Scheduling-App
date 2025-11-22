@@ -889,3 +889,171 @@ footer a {
   width: 20px;
   height: 20px;
 }
+
+
+/* Notification Styles */
+.notification-create-form {
+  background: #f0f9ff;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.notification-create-form h3 {
+  margin: 0 0 16px 0;
+  color: #1e40af;
+  font-size: 1.1rem;
+}
+
+.notification-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.notification-form-field {
+  display: block;
+}
+
+.notification-form-field label {
+  display: block;
+  margin-bottom: 4px;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.notification-form-field input,
+.notification-form-field select,
+.notification-form-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.notification-form-field textarea {
+  font-family: inherit;
+  resize: vertical;
+}
+
+.notification-form-field small {
+  color: #6b7280;
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 4px;
+}
+
+.notification-list-title {
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.notification-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #3b82f6;
+  background: #eff6ff;
+}
+
+.notification-card.priority-urgent {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.notification-card.priority-high {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.notification-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.notification-card-info {
+  flex: 1;
+}
+
+.notification-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.notification-card-title-row h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.notification-deadline-badge {
+  background: #f59e0b;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  display: inline-block;
+}
+
+.notification-priority-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: white;
+  display: inline-block;
+}
+
+.notification-priority-badge.urgent {
+  background: #ef4444;
+}
+
+.notification-priority-badge.high {
+  background: #f59e0b;
+}
+
+.notification-card-meta {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.notification-card-message {
+  margin: 12px 0 0 0;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.notification-delete-form {
+  margin: 0;
+}
+
+.notification-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+}
+
+.notification-empty-state p:first-child {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.notification-empty-state p:last-child {
+  font-size: 0.9rem;
+}
