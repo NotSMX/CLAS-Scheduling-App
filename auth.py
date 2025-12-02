@@ -9,8 +9,6 @@ auth_blueprint = Blueprint('auth', __name__)
 
 def get_role_from_email(email: str):
     email = (email or "").lower().strip()
-    if not email.endswith("@colby.edu"):
-        return None
 
     admin_emails = [e.strip().lower() for e in current_app.config.get("ADMIN_EMAILS", [])]
     if email in admin_emails:
@@ -19,6 +17,9 @@ def get_role_from_email(email: str):
     professor_emails = [e.strip().lower() for e in current_app.config.get("FACULTY_EMAILS", [])]
     if email in professor_emails:
         return "faculty"
+    
+    if not email.endswith("@colby.edu"):
+        return None
 
     local_part = email.split("@")[0]
     if re.search(r"\d", local_part):
