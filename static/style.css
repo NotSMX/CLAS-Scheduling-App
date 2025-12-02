@@ -100,8 +100,7 @@ nav form button {
 .announcement {
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: space-between;
   gap: 12px;
   padding: 6px 24px;
   height: 55px;
@@ -119,7 +118,9 @@ nav form button {
 }
 
 .announcement-button {
-  padding: 6px 13px;
+  display: flex;
+  justify-content: center; 
+  align-items: center;     
   border-radius: 6px;
   background: #f5d547;
   color: #5c4500;
@@ -130,6 +131,12 @@ nav form button {
   height: 40px;
   width: 100px;
   margin-top: 12px;
+  padding: 0;
+  text-decoration: none;
+}
+
+.announcement a {
+  text-decoration: none;
 }
 
 
@@ -618,7 +625,8 @@ footer a {
 
   .announcement button {
     width: 100%;
-    margin-top: 4px
+    margin-top: 4px;
+    text-decoration: none;
   }
 }
 
@@ -751,23 +759,29 @@ footer a {
 
 .session-modal-content {
   background: #ffffff;
-  padding: 16px 16px 12px;
+  padding: 20px 22px 18px;
   border-radius: 16px;
   max-width: 480px;
   width: 90%;
   box-shadow: 0 10px 35px rgba(15,23,42,.18);
   position: relative;
   font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: center; 
+  padding-bottom: 12px;    
 }
 
 .session-modal-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  border: 0;
+  border: none;
   background: transparent;
   font-size: 20px;
   cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;       
 }
 
 .session-modal-tag {
