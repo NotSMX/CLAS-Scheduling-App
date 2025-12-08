@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 <h2>Admin Dashboard - Submitted Sessions</h2>
 <table class="admin-table">
   <thead>
@@ -10,6 +17,7 @@
       <th>Start Time</th>
       <th>End Time</th>
       <th>Status</th>
+      <th>Update Time</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -29,6 +37,13 @@
         {% else %}
           <span class="status-badge draft">Draft</span>
         {% endif %}
+      </td>
+      <td>
+        <form action="{{ url_for('admin.update_session', session_id=session_obj.id) }}" method="post" style="display:inline;">
+          <input type="time" name="start_time" value="{{ session_obj.start_time }}">
+          <input type="time" name="end_time" value="{{ session_obj.end_time }}">
+          <button type="submit" name="update_field" value="start_time">Update</button>
+        </form>
       </td>
       <td>
         <form action="{{ url_for('admin.update_session', session_id=session_obj.id) }}" method="post">
