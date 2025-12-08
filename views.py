@@ -22,11 +22,56 @@ def inject_latest_notification():
 
 @main_blueprint.get("/")
 def landing():
-    return render_template("base.html")
+    sessions = Session.query.limit(6).all()
+    return render_template("base.html", sessions=sessions, user=current_user)
 
 @main_blueprint.get("/home")
 def home():
-    return render_template("home.html", user=current_user)
+    sessions = (
+        Session.query
+        .join(Event, Session.submission_id == Event.id)
+        .join(Room, Session.room_id == Room.id)
+        .add_columns(
+            Session.start_time,
+            Session.end_time,
+            Event.session_title,
+            Event.department,
+            Event.format,
+            Room.building_name,
+            Room.room_number
+        )
+        .all()
+    )
+
+    session_list = []
+    for s in sessions:
+        session_obj = s[0]
+        start_time = s[1]
+        end_time = s[2]
+        title = s[3]
+        dept = s[4]
+        format_type = s[5]
+        building = s[6]
+        room_num = s[7]
+
+        session_type = "Open"
+        if "closed" in (format_type or "").lower():
+            session_type = "Closed"
+        elif "family" in (format_type or "").lower():
+            session_type = "Family Friendly"
+
+        session_list.append({
+            "title": title,
+            "dept": dept,
+            "building": building,
+            "room": room_num,
+            "start_time": start_time.strftime("%I:%M %p") if start_time else "",
+            "end_time": end_time.strftime("%I:%M %p") if end_time else "",
+            "type": session_type,
+            "description": title
+        })
+
+    return render_template("home.html", user=current_user, sessions=session_list)
 
 @main_blueprint.get("/schedule")
 def schedule():

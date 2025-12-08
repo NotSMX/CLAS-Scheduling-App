@@ -10,27 +10,36 @@
       <p>Pick where you want to go.</p>
       <div class="actions">
         <a class="btn" href="{{ url_for('main.schedule') }}">View Schedule</a>
-        <a class="btn" href="{{ url_for('events.event_create_page') }}">Create Event</a>
-        <a class="btn" href="{{ url_for('events.events_page') }}">View Events</a>
+        {% if current_user.is_authenticated %}
+          <a class="btn" href="{{ url_for('events.event_create_page') }}">Create Event</a>
+          <a class="btn" href="{{ url_for('events.events_page') }}">View Events</a>
+        {% endif %}
       </div>
     </section>
 
     <section class="highlight-grid">
-      <div class="card">
-        <div class="pill pill-open">Open</div>
-        <h4>Final Project Presentations</h4>
-        <p>CS 310 · Apr 15, 2:00 PM · Arey Hall, Room 201</p>
+      {% for session in sessions %}
+      <div class="card"
+          data-dept="{{ session.dept }}"
+          data-building="{{ session.building }}"
+          data-type="{{ session.type }}"
+          data-text="{{ session.title|lower }} {{ session.dept|lower }} {{ session.building|lower }} {{ session.room|lower }} {{ session.type|lower }}"
+          data-title="{{ session.title }}"
+          data-meta="{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}"
+          data-description="{{ session.description }}">
+
+        <div class="pill
+            {% if session.type == 'Closed' %} pill-closed
+            {% elif session.type == 'Family Friendly' %} pill-family
+            {% else %} pill-open
+            {% endif %}">
+          {{ session.type }}
+        </div>
+
+        <h4>{{ session.title }}</h4>
+        <p>{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}</p>
       </div>
-      <div class="card">
-        <div class="pill pill-closed">Closed</div>
-        <h4>Final Project Presentations</h4>
-        <p>BIO 495 · Apr 16, 10:00 AM · Keyes, Room 301</p>
-      </div>
-      <div class="card">
-        <div class="pill pill-family">Family Friendly</div>
-        <h4>Final Project Presentations</h4>
-        <p>MUS 193 · Dec 5, 6:00 PM · Gordon Center</p>
-      </div>
+      {% endfor %}
     </section>
   </main>
 </body>
