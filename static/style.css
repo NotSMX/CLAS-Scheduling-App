@@ -328,13 +328,36 @@ nav form button {
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: .8rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
   font-weight: 600;
-  margin-bottom: 12px
+  color: #fff;
 }
+
+.status-badge.approved { background-color: #4ade80; }   /* green */
+.status-badge.rejected { background-color: #f87171; }   /* red */
+.status-badge.draft { background-color: #facc15; }      /* yellow */
+
+/* Action Buttons */
+.btn-approve { background-color: #22c55e; color: #fff; }
+.btn-approve:hover { background-color: #16a34a; }
+
+.btn-reject { background-color: #ef4444; color: #fff; }
+.btn-reject:hover { background-color: #b91c1c; }
+
+.btn-draft { background-color: #f59e0b; color: #fff; }
+.btn-draft:hover { background-color: #b45309; }
+
+.btn-delete { background-color: #6b7280; color: #fff; }
+.btn-delete:hover { background-color: #374151; }
+
+.admin-table form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 
 .status-open {
   background: #81c784;

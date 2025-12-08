@@ -38,10 +38,16 @@ def update_session(session_id):
     end_time = request.form.get('end_time')
     status = request.form.get('status')
 
+    def parse_time_hhmm(time_str):
+        if time_str:
+            h, m, *_ = time_str.split(":")
+            return datetime.strptime(f"{h}:{m}", "%H:%M").time()
+        return None
+
     if start_time:
-        session_obj.start_time = datetime.strptime(start_time, "%H:%M").time()
+        session_obj.start_time = parse_time_hhmm(start_time)
     if end_time:
-        session_obj.end_time = datetime.strptime(end_time, "%H:%M").time()
+        session_obj.end_time = parse_time_hhmm(end_time)
     if status in ['draft', 'approved', 'rejected']:
         session_obj.event.status = status
 

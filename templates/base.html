@@ -34,19 +34,17 @@
     </nav>
   </header>
 
+  {% if latest_notification %}
   <div class="announcement">
     <div class="announcement-content">
       <span class="badge">INFO</span>
-      {% if latest_notification %}
-        {{ latest_notification.title }}
-      {% else %}
-        No announcements at this time
-      {% endif %}
+      {{ latest_notification.title }}
     </div>
     <a href="{{ url_for('notifications.notifications_page') }}">
       <button class="announcement-button">Notifications</button>
     </a>
   </div>
+  {% endif %}
 
   <!-- Hero. I made this for phone compatibility -->
   <main class="shell">
