@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User, Session, Event, Room, Notification
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 import re
 
 main_blueprint = Blueprint("main", __name__)
@@ -45,6 +46,8 @@ def home():
 
     session_list = []
     for s in sessions:
+        if s[0].event.status != "approved":
+            continue
         session_obj = s[0]
         start_time = s[1]
         end_time = s[2]
@@ -75,53 +78,48 @@ def home():
 
 @main_blueprint.get("/schedule")
 def schedule():
+    # Query all sessions with their related Event and Room loaded
     sessions = (
         Session.query
-        .join(Event, Session.submission_id == Event.id)
-        .join(Room, Session.room_id == Room.id)
-        .add_columns(
-            Session.start_time, 
-            Session.end_time, 
-            Event.session_title,
-            Event.department,
-            Event.format,
-            Room.building_name,
-            Room.room_number
+        .join(Event)
+        .join(Room)
+        .options(
+            joinedload(Session.event),
+            joinedload(Session.room)
         )
         .all()
     )
-    
-    # Format sessions for display
+
     session_list = []
     for s in sessions:
-        session_obj = s[0]
-        start_time = s[1]
-        end_time = s[2]
-        title = s[3]
-        dept = s[4]
-        format_type = s[5]
-        building = s[6]
-        room_num = s[7]
-        
-        # Determine session type for display
+        # Skip sessions whose event is not approved
+        if s.event.status != "approved":
+            continue
+
+        # Determine session type
         session_type = "Open"
-        if "Closed" in format_type or "closed" in (session_obj.event.special_request or "").lower():
+        special = (s.event.special_request or "").lower()
+        if "closed" in (s.event.format or "").lower() or "closed" in special:
             session_type = "Closed"
-        elif "Family" in (session_obj.event.special_request or ""):
+        elif "family" in special:
             session_type = "Family Friendly"
-        
+
         session_list.append({
-            'title': title,
-            'dept': dept,
-            'building': building,
-            'room': room_num,
-            'start_time': start_time.strftime("%I:%M %p") if start_time else "",
-            'end_time': end_time.strftime("%I:%M %p") if end_time else "",
-            'type': session_type,
-            'description': session_obj.event.course_title or title
+            "title": s.event.session_title or "",
+            "dept": s.event.department or "",
+            "building": s.room.building_name or "",
+            "room": s.room.room_number or "",
+            "start_time": s.start_time.strftime("%I:%M %p") if s.start_time else "",
+            "end_time": s.end_time.strftime("%I:%M %p") if s.end_time else "",
+            "type": session_type,
+            "description": s.event.course_title or s.event.session_title or ""
         })
-    
-    return render_template("schedule.html", sessions=session_list, user=current_user if current_user.is_authenticated else None)
+
+    return render_template(
+        "schedule.html",
+        sessions=session_list,
+        user=current_user if current_user.is_authenticated else None
+    )
 
 @main_blueprint.get("/profile")
 @login_required

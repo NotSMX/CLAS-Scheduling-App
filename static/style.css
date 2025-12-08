@@ -328,12 +328,38 @@ nav form button {
 }
 
 .status-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: .8rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
   font-weight: 600;
-  margin-bottom: 12px
+  color: #fff;
+}
+
+.status-badge.approved { background-color: #4ade80; } 
+.status-badge.rejected { background-color: #f87171; }  
+.status-badge.draft { background-color: #facc15; }    
+
+.btn-approve { background-color: #22c55e; color: #fff; }
+.btn-approve:hover { background-color: #16a34a; }
+
+.btn-reject { background-color: #ef4444; color: #fff; }
+.btn-reject:hover { background-color: #b91c1c; }
+
+.btn-delete { background-color: #6b7280; color: #fff; }
+.btn-delete:hover { background-color: #374151; }
+
+button[name="update_field"] {
+  padding: 2px 6px;    
+  min-width: 0;       
+  width: auto;          
+  flex: none;           
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.admin-table {
+  text-align: center;
+  vertical-align: middle;
 }
 
 .status-open {
