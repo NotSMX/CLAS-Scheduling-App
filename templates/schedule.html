@@ -14,28 +14,29 @@
   <section class="schedule-filters">
     <input id="q" class="filter-input" placeholder="Search by course, title, room..." />
 
+    {% set depts = sessions | map(attribute='dept') | unique | list %}
+    {% set buildings = sessions | map(attribute='building') | unique | list %}
+    {% set types = sessions | map(attribute='type') | unique | list %}
+
     <select id="dept" class="filter-select">
       <option value="">All Departments</option>
-      <option value="CS">CS</option>
-      <option value="BIO">BIO</option>
-      <option value="MUS">MUS</option>
-      <option value="MATH">MATH</option>
-      <option value="ENG">ENG</option>
+      {% for d in depts %}
+        <option value="{{ d }}">{{ d }}</option>
+      {% endfor %}
     </select>
 
     <select id="building" class="filter-select">
       <option value="">All Buildings</option>
-      <option value="Lovejoy">Lovejoy</option>
-      <option value="Diamond">Diamond</option>
-      <option value="Keyes">Keyes</option>
-      <option value="Gordon">Gordon</option>
+      {% for b in buildings %}
+        <option value="{{ b }}">{{ b }}</option>
+      {% endfor %}
     </select>
 
     <select id="type" class="filter-select">
       <option value="">All Types</option>
-      <option value="Open">Open</option>
-      <option value="Closed">Closed</option>
-      <option value="Family Friendly">Family Friendly</option>
+      {% for t in types %}
+        <option value="{{ t }}">{{ t }}</option>
+      {% endfor %}
     </select>
   </section>
 

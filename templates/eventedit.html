@@ -33,34 +33,84 @@
       </select>
       
       <label for="department">Department</label>
-      <input type="text" name="department" placeholder="Department" value="{{ event.department }}">
-      
+      <input
+        type="text"
+        name="department"
+        placeholder="e.g. CS, BIO, MATH"
+        value="{{ event.department or '' }}"
+      >
+
       <label for="course_number">Course Number</label>
-      <input type="text" name="course_number" placeholder="Course Number" value="{{ event.course_number }}">
-      
+      <input
+        type="text"
+        name="course_number"
+        placeholder="e.g. 101, 240, 350"
+        value="{{ event.course_number or '' }}"
+      >
+
       <label for="course_title">Course Title</label>
-      <input type="text" name="course_title" placeholder="Course Title" value="{{ event.course_title }}">
-      
+      <input
+        type="text"
+        name="course_title"
+        placeholder="e.g. Introduction to Computer Science"
+        value="{{ event.course_title or '' }}"
+      >
+
       <label for="num_entries">Number of Entries</label>
-      <input type="number" name="num_entries" placeholder="Number of Entries" value="{{ event.num_entries }}">
-      
+      <input
+        type="number"
+        name="num_entries"
+        placeholder="e.g. 5"
+        value="{{ event.num_entries or '' }}"
+      >
+
       <label for="num_students">Number of Students</label>
-      <input type="number" name="num_students" placeholder="Number of Students" value="{{ event.num_students }}">
-      
+      <input
+        type="number"
+        name="num_students"
+        placeholder="e.g. 20"
+        value="{{ event.num_students or '' }}"
+      >
+
       <label for="session_title">Session Title</label>
-      <input type="text" name="session_title" placeholder="Session Title" value="{{ event.session_title }}">
-      
+      <input
+        type="text"
+        name="session_title"
+        placeholder="e.g. Capstone Project Showcase"
+        value="{{ event.session_title or '' }}"
+      >
+
       <label for="session_length">Session Length (in minutes)</label>
-      <input type="number" name="session_length" placeholder="Session Length" value="{{ event.session_length }}">
-      
+      <input
+        type="number"
+        name="session_length"
+        placeholder="e.g. 60"
+        value="{{ event.session_length or '' }}"
+      >
+
       <label for="individual_entry_length">Individual Entry Length (in minutes)</label>
-      <input type="number" name="individual_entry_length" placeholder="Individual Entry Length" value="{{ event.individual_entry_length }}">
-      
+      <input
+        type="number"
+        name="individual_entry_length"
+        placeholder="e.g. 10"
+        value="{{ event.individual_entry_length or '' }}"
+      >
+
       <label for="room_request">Room Request</label>
-      <input type="text" name="room_request" placeholder="Room Request" value="{{ event.room_request or '' }}">
-      
+      <input
+        type="text"
+        name="room_request"
+        placeholder="e.g. Lovejoy 201"
+        value="{{ event.room_request or '' }}"
+      >
+
       <label for="special_request">Special Requests</label>
-      <input type="text" name="special_request" placeholder="Special Requests" value="{{ event.special_request or '' }}">
+      <input
+        type="text"
+        name="special_request"
+        placeholder="e.g. Projector, microphone, wheelchair access"
+        value="{{ event.special_request or '' }}"
+      >
       
       {% if event.status == 'draft' %}
         <button class="btn" type="submit" name="action" value="draft">Save Draft</button>
