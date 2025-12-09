@@ -3,6 +3,8 @@ from flask_login import login_required, current_user
 from models import db, Session, Event, Room
 from datetime import datetime
 from functools import wraps
+from scheduler import Scheduler
+
 
 admin_blueprint = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -34,9 +36,44 @@ def view_sessions():
 @admin_required
 def update_session(session_id):
     session_obj = Session.query.get_or_404(session_id)
-    start_time = request.form.get('start_time')
-    end_time = request.form.get('end_time')
+    start_time_str = request.form.get('start_time')
+    end_time_str = request.form.get('end_time')
     status = request.form.get('status')
+
+    if start_time_str:
+        new_start = datetime.strptime(start_time_str, "%H:%M").time()
+    else:
+        new_start = session_obj.start_time
+
+    if end_time_str:
+        new_end = datetime.strptime(end_time_str, "%H:%M").time()
+    else:
+        event = session_obj.event
+        base_dt = datetime.combine(datetime.today(), new_start)
+        new_end = (base_dt + timedelta(minutes=event.session_length)).time()
+
+    # if admin tries to approve, enforce conflict check
+    if status == 'approved':
+        scheduler = Scheduler()
+        ok = scheduler._check_room_availability(
+            room_id=session_obj.room_id,
+            start_time=new_start,
+            end_time=new_end,
+            exclude_session_id=session_obj.id
+        )
+        if not ok:
+            flash("Cannot approve: this time conflicts with another session in this room.", "error")
+            return redirect(url_for('admin.view_sessions'))
+
+    session_obj.start_time = new_start
+    session_obj.end_time = new_end
+
+    if status in ['draft', 'approved', 'rejected']:
+        session_obj.event.status = status
+
+    db.session.commit()
+    flash("Session updated successfully.", "success")
+    return redirect(url_for('admin.view_sessions'))
 
     def parse_time_hhmm(time_str):
         if time_str:
