@@ -1,5 +1,8 @@
 {% extends "base.html" %}
+
 {% block content %}
+<h2>Admin Dashboard - Submitted Sessions</h2>
+
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
@@ -7,7 +10,7 @@
     {% endfor %}
   {% endif %}
 {% endwith %}
-<h2>Admin Dashboard - Submitted Sessions</h2>
+
 <table class="admin-table">
   <thead>
     <tr>
@@ -17,41 +20,37 @@
       <th>Start Time</th>
       <th>End Time</th>
       <th>Status</th>
-      <th>Update Time</th>
       <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    {% for session_obj in sessions %}
+    {% for session in sessions %}
     <tr>
-      <td>{{ session_obj.event.session_title }}</td>
-      <td>{{ session_obj.user.name }}</td>
-      <td>{{ session_obj.room.room_number }}</td>
-      <td>{{ session_obj.start_time.strftime('%I:%M %p') if session_obj.start_time else '' }}</td>
-      <td>{{ session_obj.end_time.strftime('%I:%M %p') if session_obj.end_time else '' }}</td>
+      <td>{{ session.event.session_title }}</td>
+      <td>{{ session.user.name }}</td>
+      <td>{{ session.room.building_name }} {{ session.room.room_number }}</td>
+      <td>{{ session.start_time or "Not set" }}</td>
+      <td>{{ session.end_time or "Not set" }}</td>
+      <td>{{ session.event.status }}</td>
       <td>
-        {% if session_obj.event.status == 'approved' %}
-          <span class="status-badge approved">Approved</span>
-        {% elif session_obj.event.status == 'rejected' %}
-          <span class="status-badge rejected">Rejected</span>
-        {% else %}
-          <span class="status-badge draft">Draft</span>
-        {% endif %}
-      </td>
-      <td>
-        <form action="{{ url_for('admin.update_session', session_id=session_obj.id) }}" method="post" style="display:inline;">
-          <input type="time" name="start_time" value="{{ session_obj.start_time }}">
-          <input type="time" name="end_time" value="{{ session_obj.end_time }}">
-          <button type="submit" name="update_field" value="start_time">Update</button>
+        <form action="{{ url_for('admin.update_session', session_id=session.id) }}"
+              method="post" style="display:inline;">
+          <input type="time"
+                 name="start_time"
+                 value="{{ session.start_time.strftime('%H:%M') if session.start_time else '' }}">
+          <input type="time"
+                 name="end_time"
+                 value="{{ session.end_time.strftime('%H:%M') if session.end_time else '' }}">
+          <select name="status">
+            <option value="draft" {% if session.event.status == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="approved" {% if session.event.status == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="rejected" {% if session.event.status == 'rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+          <button type="submit">Update</button>
         </form>
-      </td>
-      <td>
-        <form action="{{ url_for('admin.update_session', session_id=session_obj.id) }}" method="post">
-          <button name="status" value="approved" class="btn-approve">✔ Approve</button>
-          <button name="status" value="rejected" class="btn-reject">✖ Reject</button>
-        </form>
-        <form action="{{ url_for('admin.delete_session', session_id=session_obj.id) }}" method="post" style="margin-top:4px;">
-          <button type="submit" onclick="return confirm('Are you sure you want to delete this event? This will no longer appear on the creator\'s dashboard.')"class="btn-delete">Delete</button>
+        <form action="{{ url_for('admin.delete_session', session_id=session.id) }}"
+              method="post" style="display:inline;">
+          <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
         </form>
       </td>
     </tr>
