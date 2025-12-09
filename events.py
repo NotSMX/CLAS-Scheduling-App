@@ -448,6 +448,16 @@ def admin_add_room():
             error_message="Building name, room number, and capacity are required."
         )
     
+    if not room_number.isdigit():
+        rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+        return render_template(
+            "admin_rooms.html",
+            user=current_user,
+            rooms=rooms,
+            error_code=400,
+            error_message="Room number must be a valid number."
+        )
+
     # Check if room already exists
     existing_room = Room.query.filter_by(
         building_name=building_name,
@@ -510,6 +520,17 @@ def admin_edit_room(room_id):
             error_code=400,
             error_message="Building name, room number, and capacity are required."
         )
+    
+    if not room_number.isdigit():
+        rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+        return render_template(
+            "admin_rooms.html",
+            user=current_user,
+            rooms=rooms,
+            error_code=400,
+            error_message="Room number must be a valid number."
+        )
+
     
     # Check if another room with the same name exists
     existing_room = Room.query.filter(
