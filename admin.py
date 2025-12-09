@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from models import db, Session, Event, Room
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from scheduler import Scheduler
 
@@ -40,30 +40,56 @@ def update_session(session_id):
     end_time_str = request.form.get('end_time')
     status = request.form.get('status')
 
-    if start_time_str:
-        new_start = datetime.strptime(start_time_str, "%H:%M").time()
+
+    start_input = parse_time(start_time_str) if start_time_str else session_obj.start_time
+    end_input   = parse_time(end_time_str) if end_time_str else session_obj.end_time
+
+    event = session_obj.event
+    duration = timedelta(minutes=event.session_length)
+
+    start_changed = start_input != session_obj.start_time
+    end_changed   = end_input != session_obj.end_time
+
+    if start_changed and not end_changed:
+        new_start = start_input
+        base_dt = datetime.combine(datetime.today(), new_start)
+        new_end = (base_dt + duration).time()
+
+    elif end_changed and not start_changed:
+        new_end = end_input
+        base_dt = datetime.combine(datetime.today(), new_end)
+        new_start = (base_dt - duration).time()
+
+    elif start_changed and end_changed:
+        new_start = start_input
+        new_end = end_input
+
     else:
         new_start = session_obj.start_time
+        new_end = session_obj.end_time
 
-    if end_time_str:
-        new_end = datetime.strptime(end_time_str, "%H:%M").time()
-    else:
-        event = session_obj.event
-        base_dt = datetime.combine(datetime.today(), new_start)
-        new_end = (base_dt + timedelta(minutes=event.session_length)).time()
-
-    # if admin tries to approve, enforce conflict check
     if status == 'approved':
         scheduler = Scheduler()
-        ok = scheduler._check_room_availability(
+
+        conflicts = scheduler._get_room_conflicts(
             room_id=session_obj.room_id,
             start_time=new_start,
             end_time=new_end,
             exclude_session_id=session_obj.id
         )
-        if not ok:
-            flash("Cannot approve: this time conflicts with another session in this room.", "error")
+
+        if conflicts:
+            conflict_list = ", ".join([
+                f"{c.event.session_title} ({c.start_time.strftime('%I:%M %p')}–{c.end_time.strftime('%I:%M %p')})"
+                for c in conflicts
+            ])
+
+            flash(
+                f"Cannot approve: conflicts with approved session(s): {conflict_list}",
+                "error"
+            )
             return redirect(url_for('admin.view_sessions'))
+
 
     session_obj.start_time = new_start
     session_obj.end_time = new_end
@@ -75,22 +101,13 @@ def update_session(session_id):
     flash("Session updated successfully.", "success")
     return redirect(url_for('admin.view_sessions'))
 
-    def parse_time_hhmm(time_str):
-        if time_str:
-            h, m, *_ = time_str.split(":")
-            return datetime.strptime(f"{h}:{m}", "%H:%M").time()
+def parse_time(value):
+    if not value:
         return None
-
-    if start_time:
-        session_obj.start_time = parse_time_hhmm(start_time)
-    if end_time:
-        session_obj.end_time = parse_time_hhmm(end_time)
-    if status in ['draft', 'approved', 'rejected']:
-        session_obj.event.status = status
-
-    db.session.commit()
-    flash("Session updated successfully.", "success")
-    return redirect(url_for('admin.view_sessions'))
+    try:
+        return datetime.strptime(value, "%H:%M:%S").time()
+    except ValueError:
+        return datetime.strptime(value, "%H:%M").time()
 
 @admin_blueprint.post('/sessions/delete/<int:session_id>')
 @login_required

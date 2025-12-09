@@ -53,21 +53,39 @@ class Scheduler:
         
         return slots
     
-    def _check_room_availability(self, room_id, start_time, end_time, exclude_session_id=None):
-        """Check if a room is available during the specified time"""
-        query = Session.query.filter(
-            and_(
+    def _get_room_conflicts(self, room_id, start_time, end_time, exclude_session_id=None):
+        """
+        Return a list of conflicting APPROVED sessions for this room & time.
+        """
+        query = (
+            Session.query
+            .join(Event)
+            .filter(
                 Session.room_id == room_id,
+                Event.status == 'approved',           
                 Session.start_time < end_time,
                 Session.end_time > start_time
             )
         )
-        
+
         if exclude_session_id:
             query = query.filter(Session.id != exclude_session_id)
-        
-        overlapping = query.first()
-        return overlapping is None
+
+        return query.all()
+
+
+    def _check_room_availability(self, room_id, start_time, end_time, exclude_session_id=None):
+        """
+        Backwards compatible – still returns True/False.
+        """
+        conflicts = self._get_room_conflicts(
+            room_id=room_id,
+            start_time=start_time,
+            end_time=end_time,
+            exclude_session_id=exclude_session_id
+        )
+        return len(conflicts) == 0
+
     
     def _find_suitable_rooms(self, event, start_time, end_time):
         """Find all suitable rooms based on event requirements"""
