@@ -91,9 +91,10 @@ def home():
 
     return render_template("home.html", user=current_user, sessions=session_list)
 
+from collections import defaultdict
+
 @main_blueprint.get("/schedule")
 def schedule():
-    # Query all sessions with their related Event and Room loaded
     sessions = (
         Session.query
         .join(Event)
@@ -107,11 +108,9 @@ def schedule():
 
     session_list = []
     for s in sessions:
-        # Skip sessions whose event is not approved
         if s.event.status != "approved":
             continue
 
-        # Determine session type
         session_type = "Open"
         special = (s.event.special_request or "").lower()
         if "closed" in (s.event.format or "").lower() or "closed" in special:
@@ -124,17 +123,29 @@ def schedule():
             "dept": s.event.department or "",
             "building": s.room.building_name or "",
             "room": s.room.room_number or "",
-            "start_time": s.start_time.strftime("%I:%M %p") if s.start_time else "",
-            "end_time": s.end_time.strftime("%I:%M %p") if s.end_time else "",
+            "start_time": s.start_time.strftime("%H:%M") if s.start_time else "",
+            "end_time": s.end_time.strftime("%H:%M") if s.end_time else "",
             "type": session_type,
             "description": s.event.course_title or s.event.session_title or ""
         })
 
+    # Group sessions by room for timeline
+    sessions_by_room = defaultdict(list)
+    for session in session_list:
+        sessions_by_room[session["room"]].append(session)
+
+    # Optional: sort sessions by start time
+    for room_sessions in sessions_by_room.values():
+        room_sessions.sort(key=lambda x: x["start_time"])
+
     return render_template(
         "schedule.html",
-        sessions=session_list,
+        sessions_by_room=sessions_by_room,
+        sessions=session_list,  # flat list for filters
         user=current_user if current_user.is_authenticated else None
     )
+
+
 
 @main_blueprint.get("/profile")
 @login_required
