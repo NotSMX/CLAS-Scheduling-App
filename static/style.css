@@ -909,6 +909,21 @@ footer a:hover {
   }
 }
 
+#exportPdf {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  height: 40px;         /* match your selects */
+}
+
+#exportPdf:hover {
+  background-color: #155fa0;
+}
+
 .schedule-filters {
   display: flex;
   flex-wrap: nowrap;
@@ -950,6 +965,129 @@ footer a:hover {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px; /* space between cards */
+}
+
+.timeline-wrapper {
+  overflow-x: hidden;
+  width: 100%;
+  padding-bottom: 20px; /* space for scrollbar */
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #fafafa;
+}
+
+.schedule-grid,
+.timeline-wrapper {
+  transition: opacity 0.3s;
+  
+}
+
+.hidden {
+  display: none !important;
+}
+
+.timeline-container {
+  position: relative;
+  width: calc(100% - 100px); /* leave space for labels */
+  margin-left: 100px; /* space for room labels */
+}
+
+.timeline-ruler {
+  position: relative;
+  height: 20px;
+  width: 100%;
+  border-bottom: 1px solid #000;
+  min-width: 800px; /* same as container */
+}
+
+.timeline-hour {
+  position: absolute;
+  top: 0;
+  font-size: 12px;
+  color: #555;
+  border-left: 1px solid #ccc;
+  width: 1px;
+  text-align: center;
+  transform: translateX(-50%);
+  padding-top: 2px;
+}
+
+.room-row {
+  position: relative;
+  height: 60px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 5px;
+  min-width: 800px; /* align with timeline */
+  page-break-inside: avoid;
+}
+
+.room-label {
+  position: absolute;
+  left: -100px;
+  width: 100px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-weight: 600;
+  color: #333;
+  background: #f4f4f4;
+  border-right: 1px solid #ddd;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+}
+
+.event {
+  position: absolute;
+  height: 50px;
+  top: 5px;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.event:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Event type labels */
+.event-type {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background-color: rgba(255,255,255,0.2);
+  text-align: center;
+}
+
+/* Specific types */
+.event-type.closed {
+  background-color: #d32f2f;
+}
+.event-type.family {
+  background-color: #388e3c;
+}
+
+/* Event title */
+.event-title {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
