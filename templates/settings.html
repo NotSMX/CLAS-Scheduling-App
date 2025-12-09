@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}CLAS Schedule{% endblock %}
+{% block title %}CLAS Schedule - Settings{% endblock %}
 
 {% block content %}
 
@@ -20,28 +20,76 @@
     {% endif %}
 
     <div class="card form-card">
-      <form method="post" action="{{ url_for('main.api_settings') }}">
+      <form method="post" action="{{ url_for('main.api_settings') }}" enctype="multipart/form-data">
         <label>Full Name</label>
         <input type="text" name="name" value="{{ user.name }}" placeholder="Your name" />
 
-        <label>Profile Photo URL</label>
-        <input type="text" name="profile_pic_url" value="{{ user.profile_pic_url or '' }}" placeholder="https://…" />
-
-        <div class="settings-split">
-          <div>
-            <label>New Password</label>
-            <input type="password" name="new_password" placeholder="New password" />
-          </div>
-          <div>
-            <label>Confirm Password</label>
-            <input type="password" name="confirm_password" placeholder="Confirm password" />
+        <div style="margin-top: 32px;">
+          <label>Profile Photo</label>
+          
+          {% if user.profile_pic_url %}
+            <img src="{{ user.profile_pic_url }}" alt="Profile" class="avatar-preview show" id="avatarPreview" style="margin-top: 16px;">
+          {% else %}
+            <img src="" alt="Profile Preview" class="avatar-preview" id="avatarPreview" style="margin-top: 16px;">
+          {% endif %}
+          
+          <div class="file-upload-wrapper" style="margin-top: 16px;">
+            <input type="file" 
+                   name="profile_picture" 
+                   id="profilePicture" 
+                   class="file-upload-input"
+                   accept="image/*">
+            <label for="profilePicture" class="file-upload-label">
+              Choose Image from Computer
+            </label>
+            <div class="file-name-display" id="fileName"></div>
           </div>
         </div>
-        <p class="password-info">Password must be at least 8 characters and include at least one number, uppercase letter, lowercase letter and special character.</p>
-        <button type="submit">Save Changes</button>
+
+        <div style="margin-top: 32px;">
+          <div class="settings-split">
+            <div>
+              <label>New Password</label>
+              <input type="password" name="new_password" placeholder="New password" />
+            </div>
+            <div>
+              <label>Confirm Password</label>
+              <input type="password" name="confirm_password" placeholder="Confirm password" />
+            </div>
+          </div>
+          <p class="password-info">Password must be at least 8 characters and include at least one number, uppercase letter, lowercase letter and special character.</p>
+        </div>
+
+        <button type="submit" style="margin-top: 32px;">Save Changes</button>
       </form>
     </div>
   </main>
+
+  <script>
+    // Handle file selection and preview
+    const fileInput = document.getElementById('profilePicture');
+    const fileName = document.getElementById('fileName');
+    const avatarPreview = document.getElementById('avatarPreview');
+
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        fileName.textContent = `Selected: ${file.name}`;
+        fileName.style.color = '#22c55e';
+        fileName.style.fontWeight = '500';
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          avatarPreview.src = e.target.result;
+          avatarPreview.classList.add('show');
+        }
+        reader.readAsDataURL(file);
+      } else {
+        fileName.textContent = '';
+      }
+    });
+  </script>
 </body>
 </html>
 {% endblock %}

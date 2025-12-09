@@ -4,8 +4,23 @@ from models import db, User, Session, Event, Room, Notification
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 import re
+import os
+from werkzeug.utils import secure_filename
+import uuid
 
 main_blueprint = Blueprint("main", __name__)
+
+# File upload configuration
+UPLOAD_FOLDER = 'static/uploads/profile_pics'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+# Make sure the upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Make latest_notification available everywhere
 @main_blueprint.app_context_processor
@@ -146,22 +161,43 @@ def api_profile():
         success_code=200
     )
 
-# Settings
+# Settings - UPDATED WITH FILE UPLOAD SUPPORT
 @main_blueprint.post("/api/v1/settings")
 @login_required
 def api_settings():
     name = (request.form.get("name") or "").strip()
-    role = (request.form.get("role") or "").strip()
-    photo = (request.form.get("profile_pic_url") or "").strip()
+    profile_pic_url = (request.form.get("profile_pic_url") or "").strip()
     new_password = request.form.get("new_password") or ""
     confirm_password = request.form.get("confirm_password") or ""
 
+    # Handle file upload
+    if 'profile_picture' in request.files:
+        file = request.files['profile_picture']
+        if file and file.filename and allowed_file(file.filename):
+            # Generate unique filename
+            file_ext = file.filename.rsplit('.', 1)[1].lower()
+            unique_filename = f"{uuid.uuid4().hex}.{file_ext}"
+            filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
+            
+            # Save file
+            file.save(filepath)
+            
+            # Delete old profile picture if it exists and is not a URL
+            if current_user.profile_pic_url and current_user.profile_pic_url.startswith('/static/uploads/'):
+                old_path = current_user.profile_pic_url.lstrip('/')
+                if os.path.exists(old_path):
+                    try:
+                        os.remove(old_path)
+                    except:
+                        pass
+            
+            # Set the new profile pic URL
+            profile_pic_url = f'/static/uploads/profile_pics/{unique_filename}'
+
     if name:
         current_user.name = name
-    if role:
-        current_user.role = role
-    if photo:
-        current_user.profile_pic_url = photo
+    if profile_pic_url:
+        current_user.profile_pic_url = profile_pic_url
     
     if new_password or confirm_password:
         if new_password != confirm_password:
@@ -173,38 +209,44 @@ def api_settings():
             )
         if len(new_password) < 8:
             return render_template(
-                "register.html",
+                "settings.html",
+                user=current_user,
                 error_code=400,
                 error_message="Password must be at least 8 characters."
             )
         if len(new_password) > 100:
             return render_template(
-                "register.html",
+                "settings.html",
+                user=current_user,
                 error_code=400,
                 error_message="Password must be at most 100 characters."
             )
         if not any(ch.isdigit() for ch in new_password):
             return render_template(
-                "register.html",
+                "settings.html",
+                user=current_user,
                 error_code=400,
                 error_message="Password must include at least one number."
             )
         
         if not any(re.match(r"[^\w]", ch) for ch in new_password):
             return render_template(
-                "register.html",
+                "settings.html",
+                user=current_user,
                 error_code=400,
                 error_message="Password must include at least one special character."
             )
         if new_password == new_password.lower():
             return render_template(
-                "register.html",
+                "settings.html",
+                user=current_user,
                 error_code=400,
                 error_message="Password must have at least one uppercase letter."
             )
         if new_password == new_password.upper():
             return render_template(
-                "register.html",
+                "settings.html",
+                user=current_user,
                 error_code=400,
                 error_message="Password must have at least one lowercase letter."
             )
@@ -216,7 +258,8 @@ def api_settings():
                 char_counter[i] = 1
         if len(char_counter) < len(new_password) // 2:
             return render_template(
-                "register.html",
+                "settings.html",
+                user=current_user,
                 error_code=400,
                 error_message="Password must include more unique characters."
             )

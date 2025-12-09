@@ -7,9 +7,9 @@
   <h2 class="section-title">Choose a Schedule for "{{ event.session_title }}"</h2>
   
   <div class="card">
-    <div style="margin-bottom: 24px; padding: 16px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #0ea5e9;">
-      <h3 style="margin: 0 0 8px 0; color: #0369a1; font-size: 1rem;">Event Details</h3>
-      <p style="margin: 0; color: #075985; font-size: 0.9rem;">
+    <div style="margin-bottom: 24px; padding: 20px; background: var(--yellow-bg); border-radius: 12px; border: 2px solid var(--border);">
+      <h3 style="margin: 0 0 12px 0; color: var(--ink); font-size: 1.1rem;">Event Details</h3>
+      <p style="margin: 0; color: #5a6c7d; font-size: 0.95rem; line-height: 1.7;">
         <strong>Course:</strong> {{ event.department }} {{ event.course_number }} - {{ event.course_title }}<br>
         <strong>Duration:</strong> {{ event.session_length }} minutes<br>
         <strong>Students:</strong> {{ event.num_students }}<br>
@@ -19,29 +19,29 @@
       </p>
     </div>
 
-    <h3 style="margin-bottom: 16px; font-size: 1.1rem;">Available Time Slots</h3>
+    <h3 style="margin-bottom: 20px; font-size: 1.1rem; color: var(--ink);">Available Time Slots</h3>
     
     {% if options %}
     <form action="{{ url_for('events.confirm_schedule', event_id=event.id) }}" method="post">
-      <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
         {% for option in options %}
-        <label class="schedule-option-card" style="display: flex; align-items: center; padding: 16px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+        <label class="schedule-option-card" style="display: flex; align-items: center; padding: 18px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease; background: var(--card-gradient);">
           <input type="radio" name="schedule_option" value="{{ loop.index0 }}" required 
-                 style="margin-right: 16px; width: 20px; height: 20px; cursor: pointer;"
+                 style="margin-right: 16px; width: 20px; height: 20px; cursor: pointer; accent-color: var(--yellow);"
                  data-start-time="{{ option.start_time.strftime('%H:%M') }}"
                  data-room-id="{{ option.room.id }}">
           <div style="flex: 1;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <strong style="font-size: 1.05rem; color: var(--ink);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+              <strong style="font-size: 1.1rem; color: var(--ink);">
                 {{ option.start_time.strftime('%I:%M %p') }} - {{ option.end_time.strftime('%I:%M %p') }}
               </strong>
               {% if option.is_preferred %}
-              <span class="badge" style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">
+              <span class="status-badge" style="background: var(--yellow); color: #5c4500; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;">
                 Preferred Room
               </span>
               {% endif %}
             </div>
-            <div style="color: #6b7280; font-size: 0.9rem;">
+            <div style="color: #6b7280; font-size: 0.95rem;">
               <strong>Room:</strong> {{ option.room_name }} · 
               <strong>Capacity:</strong> {{ option.room.capacity }} people
               {% if option.room.special_features %}
@@ -56,14 +56,16 @@
       <input type="hidden" name="start_time" id="selected_start_time">
       <input type="hidden" name="room_id" id="selected_room_id">
 
-      <div style="margin-top: 24px; display: flex; gap: 12px;">
+      <div style="margin-top: 28px; display: flex; gap: 14px;">
         <button type="submit" class="btn">Confirm Schedule</button>
         <a href="{{ url_for('events.events_page') }}" class="btn-outline">Cancel</a>
       </div>
     </form>
     {% else %}
-    <p style="color: #6b7280;">No available time slots found. Please contact an administrator.</p>
-    <a href="{{ url_for('events.events_page') }}" class="btn" style="margin-top: 16px;">Back to Events</a>
+    <p style="color: #6b7280; text-align: center; padding: 40px 20px;">No available time slots found. Please contact an administrator.</p>
+    <div style="text-align: center;">
+      <a href="{{ url_for('events.events_page') }}" class="btn" style="margin-top: 16px;">Back to Events</a>
+    </div>
     {% endif %}
   </div>
 </div>
@@ -84,34 +86,28 @@
   const optionCards = document.querySelectorAll('.schedule-option-card');
   optionCards.forEach(card => {
     card.addEventListener('mouseenter', function() {
-      this.style.borderColor = '#3b82f6';
-      this.style.backgroundColor = '#f0f9ff';
+      this.style.borderColor = 'var(--yellow-hover)';
+      this.style.boxShadow = '0 4px 16px rgba(255, 217, 61, 0.2)';
     });
     card.addEventListener('mouseleave', function() {
       const radio = this.querySelector('input[type="radio"]');
       if (!radio.checked) {
-        this.style.borderColor = '#e5e7eb';
-        this.style.backgroundColor = 'transparent';
+        this.style.borderColor = 'var(--border)';
+        this.style.boxShadow = 'none';
       }
     });
     
     const radio = card.querySelector('input[type="radio"]');
     radio.addEventListener('change', function() {
       optionCards.forEach(c => {
-        c.style.borderColor = '#e5e7eb';
-        c.style.backgroundColor = 'transparent';
+        c.style.borderColor = 'var(--border)';
+        c.style.boxShadow = 'none';
       });
       if (this.checked) {
-        card.style.borderColor = '#3b82f6';
-        card.style.backgroundColor = '#eff6ff';
+        card.style.borderColor = 'var(--yellow-hover)';
+        card.style.boxShadow = '0 4px 16px rgba(255, 217, 61, 0.25)';
       }
     });
   });
 </script>
-
-<style>
-  .schedule-option-card input[type="radio"]:checked {
-    accent-color: #3b82f6;
-  }
-</style>
 {% endblock %}
