@@ -38,7 +38,7 @@ def update_session(session_id):
     session_obj = Session.query.get_or_404(session_id)
     start_time_str = request.form.get('start_time')
     end_time_str = request.form.get('end_time')
-    status = request.form.get('status')
+    status_input = request.form.get('status')
 
 
     start_input = parse_time(start_time_str) if start_time_str else session_obj.start_time
@@ -54,19 +54,20 @@ def update_session(session_id):
         new_start = start_input
         base_dt = datetime.combine(datetime.today(), new_start)
         new_end = (base_dt + duration).time()
-
+        status = 'draft'
     elif end_changed and not start_changed:
         new_end = end_input
         base_dt = datetime.combine(datetime.today(), new_end)
         new_start = (base_dt - duration).time()
-
+        status = 'draft'
     elif start_changed and end_changed:
         new_start = start_input
         new_end = end_input
-
+        status = 'draft'
     else:
         new_start = session_obj.start_time
         new_end = session_obj.end_time
+        status = status_input
 
     if status == 'approved':
         scheduler = Scheduler()
@@ -89,7 +90,6 @@ def update_session(session_id):
                 "error"
             )
             return redirect(url_for('admin.view_sessions'))
-
 
     session_obj.start_time = new_start
     session_obj.end_time = new_end
