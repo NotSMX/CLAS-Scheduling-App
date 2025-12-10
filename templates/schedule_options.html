@@ -5,47 +5,89 @@
 {% block content %}
 <div class="shell">
   <h2 class="section-title">Choose a Schedule for "{{ event.session_title }}"</h2>
-  
+
   <div class="card">
-    <div style="margin-bottom: 24px; padding: 20px; background: var(--yellow-bg); border-radius: 12px; border: 2px solid var(--border);">
+    <div
+      style="margin-bottom: 24px; padding: 20px; background: var(--yellow-bg); border-radius: 12px; border: 2px solid var(--border);">
       <h3 style="margin: 0 0 12px 0; color: var(--ink); font-size: 1.1rem;">Event Details</h3>
       <p style="margin: 0; color: #5a6c7d; font-size: 0.95rem; line-height: 1.7;">
         <strong>Course:</strong> {{ event.department }} {{ event.course_number }} - {{ event.course_title }}<br>
         <strong>Duration:</strong> {{ event.session_length }} minutes<br>
         <strong>Students:</strong> {{ event.num_students }}<br>
         {% if event.room_request %}
-        <strong>Room Preference:</strong> {{ event.room_request }}
+        <strong>Room Preference:</strong> {{ event.room_request }}<br>
+        {% endif %}
+        {% if event.special_request %}
+        <strong>Special Requests:</strong> {{ event.special_request }}
         {% endif %}
       </p>
     </div>
 
     <h3 style="margin-bottom: 20px; font-size: 1.1rem; color: var(--ink);">Available Time Slots</h3>
-    
+
     {% if options %}
     <form action="{{ url_for('events.confirm_schedule', event_id=event.id) }}" method="post">
       <div style="display: flex; flex-direction: column; gap: 14px;">
         {% for option in options %}
-        <label class="schedule-option-card" style="display: flex; align-items: center; padding: 18px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease; background: var(--card-gradient);">
-          <input type="radio" name="schedule_option" value="{{ loop.index0 }}" required 
-                 style="margin-right: 16px; width: 20px; height: 20px; cursor: pointer; accent-color: var(--yellow);"
-                 data-start-time="{{ option.start_time.strftime('%H:%M') }}"
-                 data-room-id="{{ option.room.id }}">
+        <label class="schedule-option-card"
+          style="display: flex; align-items: center; padding: 18px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.3s ease; background: var(--card-gradient);">
+          <input type="radio" name="schedule_option" value="{{ loop.index0 }}" required
+            style="margin-right: 16px; width: 20px; height: 20px; cursor: pointer; accent-color: var(--yellow);"
+            data-start-time="{{ option.start_time.strftime('%H:%M') }}" data-room-id="{{ option.room.id }}">
           <div style="flex: 1;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
               <strong style="font-size: 1.1rem; color: var(--ink);">
                 {{ option.start_time.strftime('%I:%M %p') }} - {{ option.end_time.strftime('%I:%M %p') }}
               </strong>
-              {% if option.is_preferred %}
-              <span class="status-badge" style="background: var(--yellow); color: #5c4500; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem;">
-                Preferred Room
-              </span>
-              {% endif %}
             </div>
             <div style="color: #6b7280; font-size: 0.95rem;">
-              <strong>Room:</strong> {{ option.room_name }} · 
+              <strong>Room:</strong> {{ option.room_name }} ·
               <strong>Capacity:</strong> {{ option.room.capacity }} people
+              {# Special features #}
               {% if option.room.special_features %}
-              · {{ option.room.special_features }}
+                · {{ option.room.special_features }}
+              {% endif %}
+
+              {# Preferred Room badge #}
+              {% if event.room_request %}
+                  {% set room_full = option.room.building_name ~ ' ' ~ option.room.room_number %}
+                  {% if event.room_request.strip().lower() == room_full.strip().lower() %}
+                      <span class="status-badge" style="background: var(--yellow); color: #5c4500; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 6px;">
+                          Preferred Room
+                      </span>
+                  {% endif %}
+              {% endif %}
+
+              {# Preferred Building badge #}
+              {% if event.room_request %}
+                  {% set room_req_parts = event.room_request.split() %}
+                  {% set preferred_building = room_req_parts[0] %} {# assumes first word is building #}
+                  {% if preferred_building.lower() in option.room.building_name.lower() %}
+                      <span class="status-badge" style="background: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 6px;">
+                          Preferred Building: {{ option.room.building_name }}
+                      </span>
+                  {% endif %}
+              {% endif %}
+
+
+              {# Matching special requests badge #}
+              {% if event.special_request and option.room.special_features %}
+                {% set matches = [] %}
+                {% for req in event.special_request.split(',') %}
+                  {% set req_clean = req.strip().lower() %}
+                  {% for feat in option.room.special_features.split(',') %}
+                    {% set feat_clean = feat.strip().lower() %}
+                    {% if req_clean in feat_clean %}
+                      {% set _ = matches.append(req_clean) %}
+                    {% endif %}
+                  {% endfor %}
+                {% endfor %}
+                  {% if matches %}
+                    <span class="status-badge"
+                          style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 6px;">
+                      Has: {{ matches | map('capitalize') | join(', ') }}
+                    </span>
+                  {% endif %}
               {% endif %}
             </div>
           </div>
@@ -62,7 +104,8 @@
       </div>
     </form>
     {% else %}
-    <p style="color: #6b7280; text-align: center; padding: 40px 20px;">No available time slots found. Please contact an administrator.</p>
+    <p style="color: #6b7280; text-align: center; padding: 40px 20px;">No available time slots found. Please contact an
+      administrator.</p>
     <div style="text-align: center;">
       <a href="{{ url_for('events.events_page') }}" class="btn" style="margin-top: 16px;">Back to Events</a>
     </div>
@@ -74,31 +117,29 @@
   const radios = document.querySelectorAll('input[name="schedule_option"]');
   const startTimeInput = document.getElementById('selected_start_time');
   const roomIdInput = document.getElementById('selected_room_id');
-  
+
   radios.forEach(radio => {
-    radio.addEventListener('change', function() {
+    radio.addEventListener('change', function () {
       startTimeInput.value = this.dataset.startTime;
       roomIdInput.value = this.dataset.roomId;
     });
   });
 
-  // Add hover effects
   const optionCards = document.querySelectorAll('.schedule-option-card');
   optionCards.forEach(card => {
-    card.addEventListener('mouseenter', function() {
+    card.addEventListener('mouseenter', function () {
       this.style.borderColor = 'var(--yellow-hover)';
       this.style.boxShadow = '0 4px 16px rgba(255, 217, 61, 0.2)';
     });
-    card.addEventListener('mouseleave', function() {
+    card.addEventListener('mouseleave', function () {
       const radio = this.querySelector('input[type="radio"]');
       if (!radio.checked) {
         this.style.borderColor = 'var(--border)';
         this.style.boxShadow = 'none';
       }
     });
-    
     const radio = card.querySelector('input[type="radio"]');
-    radio.addEventListener('change', function() {
+    radio.addEventListener('change', function () {
       optionCards.forEach(c => {
         c.style.borderColor = 'var(--border)';
         c.style.boxShadow = 'none';
