@@ -203,11 +203,13 @@ nav form button {
   cursor: pointer;
   font-size: 0.85rem;
   height: 40px;
+  line-height: 1;
   width: 110px;
   padding: 0;
   text-decoration: none;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  margin: auto 0;
 }
 
 .announcement-button:hover {
@@ -358,6 +360,7 @@ nav form button {
   background: var(--blue-d);
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+  color: white;
 }
 
 .btn-outline {
@@ -471,20 +474,6 @@ nav form button {
   margin-bottom: 32px
 }
 
-.filter-input {
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fff;
-  font-size: .9rem;
-  color: var(--ink);
-  transition: all 0.3s ease;
-}
-
-.filter-input:focus {
-  border-color: var(--yellow);
-  box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.1);
-}
 
 /* Highlights Section */
 .highlights h3 {
@@ -559,12 +548,12 @@ nav form button {
 }
 
 button[name="update_field"] {
-  padding: 2px 6px;    
-  min-width: 0;       
-  width: auto;          
-  flex: none;           
+  padding: 8px 10px;    
+  width: 125px;
   cursor: pointer;
-  border-radius: 4px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
 }
 
 .admin-table {
@@ -955,72 +944,187 @@ footer a:hover {
   }
 }
 
-/* Enhanced Schedule Page Styles */
-.schedule-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 24px 48px;
+#exportPdf {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  height: 40px;         /* match your selects */
 }
 
-.schedule-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.schedule-title-block h1 {
-  margin: 0;
-  font-size: 2rem;
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.schedule-title-block p {
-  margin: 6px 0 0;
-  color: #64748b;
-  font-size: 0.95rem;
-}
-
-.schedule-actions .link,
-.schedule-actions .btn-outline {
-  margin-left: 10px;
-  font-size: 0.9rem;
-  text-decoration: none;
-  color: var(--blue-m);
-  transition: color 0.2s ease;
+#exportPdf:hover {
+  background-color: #155fa0;
 }
 
 .schedule-filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
+  align-items: center; /* vertical alignment */
   margin-bottom: 20px;
 }
 
 .filter-input,
 .filter-select {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 2px solid var(--border);
-  font-size: 0.9rem;
-  background: #fff;
-  color: var(--ink);
-  transition: all 0.3s ease;
+  display: flex;           /* not inline-flex */
+  align-items: center;     /* vertically center text inside */
+  justify-content: flex-start;
+  height: 36px;
+  padding: 6px 12px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+  margin: 0;               /* reset any default margin */
+  margin-top: 4px;
 }
 
-.filter-input:focus,
-.filter-select:focus {
-  border-color: var(--yellow);
-  box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.1);
+
+.filter-input {
+  flex: 1 1 200px;
+}
+
+.filter-select {
+  flex: 0 0 150px;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .schedule-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px; /* space between cards */
 }
+
+.timeline-wrapper {
+  overflow-x: hidden;
+  width: 100%;
+  padding-bottom: 20px; /* space for scrollbar */
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #fafafa;
+}
+
+.schedule-grid,
+.timeline-wrapper {
+  transition: opacity 0.3s;
+  
+}
+
+.hidden {
+  display: none !important;
+}
+
+.timeline-container {
+  position: relative;
+  width: calc(100% - 100px); /* leave space for labels */
+  margin-left: 100px; /* space for room labels */
+}
+
+.timeline-ruler {
+  position: relative;
+  height: 20px;
+  width: 100%;
+  border-bottom: 1px solid #000;
+  min-width: 800px; /* same as container */
+}
+
+.timeline-hour {
+  position: absolute;
+  top: 0;
+  font-size: 12px;
+  color: #555;
+  border-left: 1px solid #ccc;
+  width: 1px;
+  text-align: center;
+  transform: translateX(-50%);
+  padding-top: 2px;
+}
+
+.room-row {
+  position: relative;
+  height: 60px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 5px;
+  min-width: 800px; /* align with timeline */
+  page-break-inside: avoid;
+}
+
+.room-label {
+  position: absolute;
+  left: -100px;
+  width: 100px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-weight: 600;
+  color: #333;
+  background: #f4f4f4;
+  border-right: 1px solid #ddd;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+}
+
+.event {
+  position: absolute;
+  height: 50px;
+  top: 5px;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.event:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Event type labels */
+.event-type {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background-color: rgba(255,255,255,0.2);
+  text-align: center;
+}
+
+/* Specific types */
+.event-type.closed {
+  background-color: #d32f2f;
+}
+.event-type.family {
+  background-color: #388e3c;
+}
+
+/* Event title */
+.event-title {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 
 .session-card {
   background: linear-gradient(135deg, #ffffff 0%, #fefeff 100%);
@@ -1124,6 +1228,7 @@ footer a:hover {
   padding: 6px 10px;
   transition: all 0.2s ease;
   border-radius: 6px;
+  background-color: #4285f4;
 }
 
 .session-modal-close:hover {
@@ -1158,7 +1263,6 @@ footer a:hover {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 24px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -1194,6 +1298,12 @@ footer a:hover {
 
 .admin-table td {
   color: var(--ink-2);
+  max-width: 150px;
+}
+
+.admin-table td.approve-deny {
+  color: var(--ink-2);
+  max-width: 200px;
 }
 
 .admin-table select,
@@ -1452,4 +1562,69 @@ footer a:hover {
 
 .notification-empty-state p:last-child {
   font-size: 0.9rem;
+}
+
+/* Admin Dashboard Filter Menu */
+
+.filter-form {
+  margin-bottom: 0.75rem; /* smaller gap below filters */
+}
+
+.filter-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.filter-field select {
+  width: 100%;
+}
+
+/* actions row */
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.filter-actions .btn {
+  flex: 1;                 
+  text-align: center;
+  padding: 0.55rem 2.2rem;
+  font-size: 0.95rem;
+}
+
+.filter-actions .btn-outline {
+  padding: 0.55rem 1.75rem;
+  font-size: 0.95rem;
+}
+
+
+.room-alert {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.room-alert.show {
+  opacity: 1;
 }

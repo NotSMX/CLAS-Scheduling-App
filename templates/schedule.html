@@ -21,40 +21,77 @@
     <select id="dept" class="filter-select">
       <option value="">All Departments</option>
       {% for d in depts %}
-        <option value="{{ d }}">{{ d }}</option>
+      <option value="{{ d }}">{{ d }}</option>
       {% endfor %}
     </select>
 
     <select id="building" class="filter-select">
       <option value="">All Buildings</option>
       {% for b in buildings %}
-        <option value="{{ b }}">{{ b }}</option>
+      <option value="{{ b }}">{{ b }}</option>
       {% endfor %}
     </select>
 
     <select id="type" class="filter-select">
       <option value="">All Types</option>
       {% for t in types %}
-        <option value="{{ t }}">{{ t }}</option>
+      <option value="{{ t }}">{{ t }}</option>
       {% endfor %}
     </select>
+
+    <select id="viewToggle" class="filter-select">
+      <option value="grid">Box View</option>
+      <option value="timeline">Schedule View</option>
+    </select>
+
+    <button id="exportPdf" class="filter-select">Export PDF</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   </section>
+
+
+  <div class="timeline-wrapper hidden">
+    <div class="timeline-container">
+      <div class="timeline-ruler"></div>
+
+      {% for room, room_sessions in sessions_by_room.items() %}
+      <div class="room-row">
+        <div class="room-label">
+          {{ room_sessions[0].building }} {{ room_sessions[0].room }}
+        </div>
+        {% for session in room_sessions %}
+        <div class="event" data-start="{{ session.start_time }}" data-end="{{ session.end_time }}"
+          data-title="{{ session.title }}"
+          data-meta="{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}"
+          data-type="{{ session.type }}" data-dept="{{ session.dept }}" data-description="{{ session.description }}">
+          <div
+            class="event-type{% if session.type == 'Closed' %} closed{% elif session.type == 'Family Friendly' %} family{% endif %}">
+            {{ session.type }}
+          </div>
+          <div class="event-title">{{ session.title }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
 
   <section id="sessions" class="schedule-grid">
     {% for session in sessions %}
-    <div class="session-card"
-         data-dept="{{ session.dept }}"
-         data-building="{{ session.building }}"
-         data-type="{{ session.type }}"
-         data-text="{{ session.title|lower }} {{ session.dept|lower }} {{ session.building|lower }} {{ session.room|lower }} {{ session.type|lower }}"
-         data-title="{{ session.title }}"
-         data-meta="{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}"
-         data-description="{{ session.description }}">
-      <div class="session-tag{% if session.type == 'Closed' %} session-tag-closed{% elif session.type == 'Family Friendly' %} session-tag-family{% endif %}">
+    <div class="session-card" data-dept="{{ session.dept }}" data-building="{{ session.building }}"
+      data-type="{{ session.type }}"
+      data-text="{{ session.title|lower }} {{ session.dept|lower }} {{ session.building|lower }} {{ session.room|lower }} {{ session.type|lower }}"
+      data-title="{{ session.title }}"
+      data-meta="{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}"
+      data-description="{{ session.description }}">
+      <div
+        class="session-tag{% if session.type == 'Closed' %} session-tag-closed{% elif session.type == 'Family Friendly' %} session-tag-family{% endif %}">
         {{ session.type }}
       </div>
       <h3 class="session-title">{{ session.title }}</h3>
-      <p class="session-meta">{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time }}–{{ session.end_time }}</p>
+      <p class="session-meta">{{ session.dept }} · {{ session.building }} {{ session.room }} · {{ session.start_time
+        }}–{{ session.end_time }}</p>
     </div>
     {% endfor %}
   </section>
@@ -79,63 +116,194 @@
 </div>
 
 <script>
-  const q = document.getElementById("q")
-  const dept = document.getElementById("dept")
-  const building = document.getElementById("building")
-  const type = document.getElementById("type")
-  const cards = Array.from(document.querySelectorAll(".session-card"))
-  const empty = document.getElementById("emptyState")
+  document.addEventListener("DOMContentLoaded", () => {
+    const q = document.getElementById("q");
+    const dept = document.getElementById("dept");
+    const building = document.getElementById("building");
+    const type = document.getElementById("type");
+    const empty = document.getElementById("emptyState");
+    const viewToggle = document.getElementById("viewToggle");
+    const gridView = document.querySelector(".schedule-grid");
+    const timelineView = document.querySelector(".timeline-wrapper");
 
-  function applyFilters() {
-    const text = (q.value || "").toLowerCase().trim()
-    const d = dept.value
-    const b = building.value
-    const t = type.value
-    let visible = 0
+    viewToggle.addEventListener("change", () => {
+      if (viewToggle.value === "grid") {
+        gridView.classList.remove("hidden");
+        timelineView.classList.add("hidden");
+      } else {
+        gridView.classList.add("hidden");
+        timelineView.classList.remove("hidden");
+        renderTimeline();  // re-calculate positions when visible
+      }
+    });
 
-    cards.forEach(card => {
-      const matchText = !text || card.dataset.text.includes(text)
-      const matchDept = !d || card.dataset.dept === d
-      const matchBuilding = !b || card.dataset.building === b
-      const matchType = !t || card.dataset.type === t
-      const show = matchText && matchDept && matchBuilding && matchType
-      card.style.display = show ? "block" : "none"
-      if (show) visible++
-    })
+    let events = Array.from(document.querySelectorAll(".event"));
 
-    empty.style.display = visible ? "none" : "block"
-  }
+    function applyFilters() {
+      const text = (q.value || "").toLowerCase().trim();
+      const d = dept.value;
+      const b = building.value;
+      const t = type.value;
+      let visible = 0;
 
-  q.addEventListener("input", applyFilters)
-  dept.addEventListener("change", applyFilters)
-  building.addEventListener("change", applyFilters)
-  type.addEventListener("change", applyFilters)
+      const events = Array.from(document.querySelectorAll(".event"));
+      const cards = Array.from(document.querySelectorAll(".session-card"));
 
-  const modal = document.getElementById("sessionModal")
-  const modalTitle = document.getElementById("modalTitle")
-  const modalMeta = document.getElementById("modalMeta")
-  const modalType = document.getElementById("modalType")
-  const modalDesc = document.getElementById("modalDesc")
-  const modalClose = document.getElementById("sessionModalClose")
+      events.forEach(ev => {
+        const matchText = !text || ev.dataset.title.toLowerCase().includes(text);
+        const matchDept = !d || ev.dataset.dept === d;
+        const matchBuilding = !b || ev.dataset.meta.includes(b);
+        const matchType = !t || ev.dataset.type === t;
+        const show = matchText && matchDept && matchBuilding && matchType;
+        ev.style.display = show ? "inline-block" : "none";
+        if (show) visible++;
+      });
 
-  cards.forEach(card => {
-    card.addEventListener("click", () => {
-      modalTitle.textContent = card.dataset.title || ""
-      modalMeta.textContent = card.dataset.meta || ""
-      modalType.textContent = card.dataset.type || ""
-      modalDesc.textContent = card.dataset.description || ""
-      modal.classList.add("show")
-    })
-  })
+      cards.forEach(card => {
+        const matchText = !text || card.dataset.text.includes(text);
+        const matchDept = !d || card.dataset.dept === d;
+        const matchBuilding = !b || card.dataset.meta.includes(b);
+        const matchType = !t || card.dataset.type === t;
+        const show = matchText && matchDept && matchBuilding && matchType;
+        card.style.display = show ? "block" : "none";
+      });
 
-  modalClose.addEventListener("click", () => {
-    modal.classList.remove("show")
-  })
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.remove("show")
+      document.querySelectorAll(".room-row").forEach(row => {
+        const visibleEvents = row.querySelectorAll(".event:not([style*='display: none'])");
+        row.style.display = visibleEvents.length ? "block" : "none";
+      });
+      empty.style.display = visible ? "none" : "block";
     }
-  })
+
+
+
+    q.addEventListener("input", applyFilters);
+    dept.addEventListener("change", applyFilters);
+    building.addEventListener("change", applyFilters);
+    type.addEventListener("change", applyFilters);
+
+    // Modal logic
+
+    const modal = document.getElementById("sessionModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalMeta = document.getElementById("modalMeta");
+    const modalType = document.getElementById("modalType");
+    const modalDesc = document.getElementById("modalDesc");
+    const modalClose = document.getElementById("sessionModalClose");
+
+    // Open modal for both timeline events and grid cards
+    document.addEventListener("click", (e) => {
+      const ev = e.target.closest(".event, .session-card");
+      if (!ev) return;
+
+      modalTitle.textContent = ev.dataset.title || "";
+      modalMeta.textContent = ev.dataset.meta || "";
+      modalType.textContent = ev.dataset.type || "";
+      modalDesc.textContent = ev.dataset.description || "";
+      modal.classList.add("show");
+    });
+
+    // Close modal
+    modalClose.addEventListener("click", () => modal.classList.remove("show"));
+    modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("show"); });
+
+    // Timeline render function
+    function renderTimeline() {
+      const timelineContainer = document.querySelector(".timeline-container");
+      const timelineRuler = document.querySelector(".timeline-ruler");
+      const events = Array.from(document.querySelectorAll(".event"));
+
+      const timelineStart = 8;
+      const timelineEnd = 20;
+      const totalMinutes = (timelineEnd - timelineStart) * 60;
+
+      // Make container wide enough for hours
+      timelineContainer.style.minWidth = "10%";
+
+      timelineRuler.innerHTML = "";
+
+      for (let h = timelineStart; h <= timelineEnd; h++) {
+        const hourDiv = document.createElement("div");
+        hourDiv.className = "timeline-hour";
+        hourDiv.textContent = `${h}:00`;
+        hourDiv.style.left = ((h - timelineStart) / (timelineEnd - timelineStart)) * timelineContainer.clientWidth + "px";
+        timelineRuler.appendChild(hourDiv);
+
+        if (h < timelineEnd) {
+          const halfDiv = document.createElement("div");
+          halfDiv.className = "timeline-hour";
+          halfDiv.style.left = ((h - timelineStart + 0.5) / (timelineEnd - timelineStart)) * timelineContainer.clientWidth + "px";
+          halfDiv.style.height = "10px";
+          halfDiv.style.borderLeft = "1px solid #999";
+          halfDiv.textContent = "";
+          timelineRuler.appendChild(halfDiv);
+        }
+      }
+
+      events.forEach(ev => {
+        const [startH, startM] = ev.dataset.start.split(":").map(Number);
+        const [endH, endM] = ev.dataset.end.split(":").map(Number);
+        const startMinutes = (startH * 60 + startM) - (timelineStart * 60);
+        const endMinutes = (endH * 60 + endM) - (timelineStart * 60);
+
+        ev.style.left = (startMinutes / totalMinutes) * timelineContainer.clientWidth + "px";
+        ev.style.width = ((endMinutes - startMinutes) / totalMinutes) * timelineContainer.clientWidth + "px";
+      });
+    }
+
+
+    renderTimeline();
+    window.addEventListener("resize", renderTimeline);
+    const exportBtn = document.getElementById("exportPdf");
+
+    exportBtn.addEventListener("click", async () => {
+      const isTimeline = viewToggle.value === "timeline";
+      const element = isTimeline
+        ? document.querySelector(".timeline-wrapper") // include labels
+        : document.querySelector(".schedule-grid");
+
+      const opt = {
+        margin: 0.3,
+        filename: "clas-schedule.pdf",
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { useCORS: true, scale: 2 },
+        jsPDF: {
+          unit: "in",
+          format: "letter",
+          orientation: isTimeline ? "landscape" : "portrait",
+        },
+      };
+
+      let originalTransform = "";
+      let originalWidth = "";
+
+      if (isTimeline) {
+        const pageWidthInPx = 11 * 96 - 2 * 24; // letter width in px minus margins (approx)
+        const fullWidth = element.scrollWidth;
+
+        const scale = pageWidthInPx / fullWidth;
+
+        originalTransform = element.style.transform;
+        originalWidth = element.style.width;
+
+        element.style.transform = `scale(${scale})`;
+        element.style.transformOrigin = "top left";
+        element.style.width = `${fullWidth}px`;
+      }
+
+      await html2pdf().set(opt).from(element).save();
+
+      // restore
+      if (isTimeline) {
+        element.style.transform = originalTransform;
+        element.style.width = originalWidth;
+        element.style.transformOrigin = "";
+      }
+    });
+
+
+  });
+
 </script>
+
 {% endblock %}
