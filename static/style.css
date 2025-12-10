@@ -54,6 +54,9 @@ body {
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: var(--bg);
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* optional, for full-page gradient */
+  background-size: cover;
   color: var(--ink);
   min-height: 100vh
 }
