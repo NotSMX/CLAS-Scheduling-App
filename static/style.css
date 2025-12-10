@@ -1618,6 +1618,8 @@ footer a:hover {
   text-align: center;
   padding: 0.55rem 2.2rem;
   font-size: 0.95rem;
+  max-width: 125px;
+  height: 43px;
 }
 
 .filter-actions .btn-outline {

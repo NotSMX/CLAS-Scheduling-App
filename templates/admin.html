@@ -159,8 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const row = e.target.closest(".admin-session-row");
     if (!row) return;
     // Ignore clicks on buttons inside the row
-    if (e.target.closest("button, input, select, textarea, a, form")) return;
-
+    if (e.target.tagName === "BUTTON") return;
 
     modalTitle.textContent = row.dataset.title || "";
     modalDept.textContent = row.dataset.dept || "";
