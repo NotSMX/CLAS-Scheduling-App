@@ -519,12 +519,12 @@ nav form button {
 }
 
 button[name="update_field"] {
-  padding: 2px 6px;    
-  min-width: 0;       
-  width: auto;          
-  flex: none;           
+  padding: 8px 10px;    
+  width: 125px;
   cursor: pointer;
-  border-radius: 4px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
 }
 
 .admin-table {
