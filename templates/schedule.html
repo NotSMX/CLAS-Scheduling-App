@@ -301,6 +301,25 @@
       }
     });
 
+    function stringToColor(str) {
+      // Simple hash function to get a number from a string
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      // Convert hash to HSL color
+      const h = hash % 360;
+      return `hsl(${h}, 60%, 50%)`;
+    }
+    const deptColors = {};
+
+    events.forEach(ev => {
+      const dept = ev.dataset.dept;
+      if (!deptColors[dept]) {
+        deptColors[dept] = stringToColor(dept);
+      }
+      ev.style.backgroundColor = deptColors[dept];
+    });
 
   });
 
