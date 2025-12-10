@@ -293,7 +293,7 @@ def event_schedule_options(event_id):
     
     # Generate schedule options
     scheduler = Scheduler()
-    options = scheduler.generate_schedule_options(event.id, max_options=10)
+    options = scheduler.generate_schedule_options(event.id, max_options=25)
     
     if not options:
         events = Event.query.filter_by(user_id=current_user.id).all()
