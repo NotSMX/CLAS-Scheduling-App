@@ -64,7 +64,7 @@
       <th>User</th>
       <th>Room</th>
       <th>Start/End Time</th>
-      <th>Room/Special Requests</th>
+      <th>Requests</th>
       <th>Status</th>
       <th>Update Time</th>
       <th>Actions</th>
@@ -103,7 +103,7 @@
           <button type="submit" name="update_field" value="start_time">Update</button>
         </form>
       </td>
-      <td>
+      <td class="approve-deny">
         <form action="{{ url_for('admin.update_session', session_id=session_obj.id) }}" method="post">
           <button name="status" value="approved" class="btn-approve">✔ Approve</button>
           <button name="status" value="rejected" class="btn-reject">✖ Reject</button>

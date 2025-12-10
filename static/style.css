@@ -1264,6 +1264,12 @@ footer a:hover {
 
 .admin-table td {
   color: var(--ink-2);
+  max-width: 150px;
+}
+
+.admin-table td.approve-deny {
+  color: var(--ink-2);
+  max-width: 200px;
 }
 
 .admin-table select,
