@@ -63,8 +63,8 @@
       <th>Title</th>
       <th>User</th>
       <th>Room</th>
-      <th>Start Time</th>
-      <th>End Time</th>
+      <th>Start/End Time</th>
+      <th>Room/Special Requests</th>
       <th>Status</th>
       <th>Update Time</th>
       <th>Actions</th>
@@ -72,19 +72,24 @@
   </thead>
   <tbody>
     {% for session_obj in sessions %}
-    <tr>
+    <tr class="admin-session-row"
+        data-title="{{ session_obj.event.session_title }}"
+        data-dept="{{ session_obj.event.department }}"
+        data-course="{{ session_obj.event.course_number }} - {{ session_obj.event.course_title }}"
+        data-format="{{ session_obj.event.format }}"
+        data-num-students="{{ session_obj.event.num_students }}"
+        data-room-request="{{ session_obj.event.room_request }}"
+        data-special-request="{{ session_obj.event.special_request }}">
       <td>{{ session_obj.event.session_title }}</td>
       <td>{{ session_obj.user.name }}</td>
-      <td>{{ session_obj.room.room_number }}</td>
-      <td>{{ session_obj.start_time.strftime('%I:%M %p') if session_obj.start_time else '' }}</td>
-      <td>{{ session_obj.end_time.strftime('%I:%M %p') if session_obj.end_time else '' }}</td>
+      <td>{{ session_obj.room.building_name + " " + session_obj.room.room_number|string }}</td>
+      <td>{{ (session_obj.start_time.strftime('%I:%M %p') if session_obj.start_time else '') + (('<br>' if session_obj.start_time and session_obj.end_time else '') + session_obj.end_time.strftime('%I:%M %p') if session_obj.end_time else '') | safe }}</td>
+      <td>{{ (session_obj.event.room_request) + ('<br>' + session_obj.event.special_request) | safe }}</td>
       <td>
         {% if session_obj.event.status == 'approved' %}
           <span class="status-badge approved">Approved</span>
         {% elif session_obj.event.status == 'rejected' %}
           <span class="status-badge rejected">Rejected</span>
-        {% elif session_obj.event.status == 'submitted' %}
-          <span class="status-badge draft">Submitted</span>
         {% else %}
           <span class="status-badge draft">Draft</span>
         {% endif %}
