@@ -81,7 +81,14 @@
         data-room-request="{{ session_obj.event.room_request }}"
         data-special-request="{{ session_obj.event.special_request }}">
       <td>{{ session_obj.event.session_title }}</td>
-      <td>{{ session_obj.user.name }}</td>
+      <td>
+        {% if session_obj.user.profile_pic_url %}
+          <img src="{{ session_obj.user.profile_pic_url }}" alt="Profile" class="user-pic">
+        {% else %}
+          <i class="fa-solid fa-user" style="color:#555;"></i>
+        {% endif %}
+        {{ session_obj.user.name }}
+      </td>
       <td>{{ session_obj.room.building_name + " " + session_obj.room.room_number|string }}</td>
       <td>{{ (session_obj.start_time.strftime('%I:%M %p') if session_obj.start_time else '') + (('<br>' if session_obj.start_time and session_obj.end_time else '') + session_obj.end_time.strftime('%I:%M %p') if session_obj.end_time else '') | safe }}</td>
       <td>{{ (session_obj.event.room_request) + ('<br>' + session_obj.event.special_request) | safe }}</td>

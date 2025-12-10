@@ -1348,6 +1348,16 @@ footer a:hover {
   gap: 6px;
 }
 
+.user-pic {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+
 /* Google Login Button */
 .login-google {
   background: #ffffff;
