@@ -15,6 +15,7 @@
       <a href="{{ url_for('main.home') }}">Home</a>
       <a href="{{ url_for('main.schedule') }}">Schedule</a>
       {% if current_user.is_authenticated %}
+        <a href="{{ url_for('notifications.notifications_page') }}">Notifications</a>
         <a href="{{ url_for('events.event_create_page') }}">Create</a>
         <a href="{{ url_for('events.events_page') }}">My Events</a>
         {% if current_user.role == 'admin' %}
@@ -35,14 +36,17 @@
   </header>
 
   {% if latest_notification %}
-  <div class="announcement">
+  <div class="announcement" id="announcementBar">
     <div class="announcement-content">
       <span class="badge">INFO</span>
       {{ latest_notification.title }}
     </div>
-    <a href="{{ url_for('notifications.notifications_page') }}">
-      <button class="announcement-button">Notifications</button>
-    </a>
+    <div class="announcement-actions">
+      <a href="{{ url_for('notifications.notifications_page') }}">
+        <button class="announcement-button">Notifications</button>
+      </a>
+      <button class="announcement-close" onclick="this.closest('.announcement').style.display='none'" aria-label="Close notification">×</button>
+    </div>
   </div>
   {% endif %}
 
