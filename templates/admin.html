@@ -26,7 +26,14 @@
   </thead>
   <tbody>
     {% for session_obj in sessions %}
-    <tr>
+    <tr class="admin-session-row"
+        data-title="{{ session_obj.event.session_title }}"
+        data-dept="{{ session_obj.event.department }}"
+        data-course="{{ session_obj.event.course_number }} - {{ session_obj.event.course_title }}"
+        data-format="{{ session_obj.event.format }}"
+        data-num-students="{{ session_obj.event.num_students }}"
+        data-room-request="{{ session_obj.event.room_request }}"
+        data-special-request="{{ session_obj.event.special_request }}">
       <td>{{ session_obj.event.session_title }}</td>
       <td>{{ session_obj.user.name }}</td>
       <td>{{ session_obj.room.room_number }}</td>
@@ -62,4 +69,57 @@
     {% endfor %}
   </tbody>
 </table>
+
+<!-- modal -->
+<div id="adminSessionModal" class="session-modal">
+  <div class="session-modal-content">
+    <div class="modal-header">
+      <button id="adminModalClose" class="session-modal-close">×</button>
+    </div>
+    <div id="adminModalBody">
+      <h2 id="adminModalTitle"></h2>
+      <p><strong>Department:</strong> <span id="adminModalDept"></span></p>
+      <p><strong>Course:</strong> <span id="adminModalCourse"></span></p>
+      <p><strong>Format:</strong> <span id="adminModalFormat"></span></p>
+      <p><strong>Number of Students:</strong> <span id="adminModalNumStudents"></span></p>
+      <p><strong>Room Request:</strong> <span id="adminModalRoomRequest"></span></p>
+      <p><strong>Special Request:</strong> <span id="adminModalSpecialRequest"></span></p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("adminSessionModal");
+  const modalTitle = document.getElementById("adminModalTitle");
+  const modalDept = document.getElementById("adminModalDept");
+  const modalCourse = document.getElementById("adminModalCourse");
+  const modalFormat = document.getElementById("adminModalFormat");
+  const modalNumStudents = document.getElementById("adminModalNumStudents");
+  const modalRoomRequest = document.getElementById("adminModalRoomRequest");
+  const modalSpecialRequest = document.getElementById("adminModalSpecialRequest");
+  const modalClose = document.getElementById("adminModalClose");
+
+  document.addEventListener("click", (e) => {
+    const row = e.target.closest(".admin-session-row");
+    if (!row) return;
+    // Ignore clicks on buttons inside the row
+    if (e.target.tagName === "BUTTON") return;
+
+    modalTitle.textContent = row.dataset.title || "";
+    modalDept.textContent = row.dataset.dept || "";
+    modalCourse.textContent = row.dataset.course || "";
+    modalFormat.textContent = row.dataset.format || "";
+    modalNumStudents.textContent = row.dataset.numStudents || "";
+    modalRoomRequest.textContent = row.dataset.roomRequest || "";
+    modalSpecialRequest.textContent = row.dataset.specialRequest || "";
+
+    modal.classList.add("show");
+  });
+
+  modalClose.addEventListener("click", () => modal.classList.remove("show"));
+  modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("show"); });
+});
+</script>
+
 {% endblock %}
