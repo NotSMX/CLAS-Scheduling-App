@@ -183,6 +183,7 @@
     type.addEventListener("change", applyFilters);
 
     // Modal logic
+
     const modal = document.getElementById("sessionModal");
     const modalTitle = document.getElementById("modalTitle");
     const modalMeta = document.getElementById("modalMeta");
@@ -190,16 +191,19 @@
     const modalDesc = document.getElementById("modalDesc");
     const modalClose = document.getElementById("sessionModalClose");
 
-    events.forEach(event => {
-      event.addEventListener("click", () => {
-        modalTitle.textContent = event.dataset.title || "";
-        modalMeta.textContent = event.dataset.meta || "";
-        modalType.textContent = event.dataset.type || "";
-        modalDesc.textContent = event.dataset.description || "";
-        modal.classList.add("show");
-      });
+    // Open modal for both timeline events and grid cards
+    document.addEventListener("click", (e) => {
+      const ev = e.target.closest(".event, .session-card");
+      if (!ev) return;
+
+      modalTitle.textContent = ev.dataset.title || "";
+      modalMeta.textContent = ev.dataset.meta || "";
+      modalType.textContent = ev.dataset.type || "";
+      modalDesc.textContent = ev.dataset.description || "";
+      modal.classList.add("show");
     });
 
+    // Close modal
     modalClose.addEventListener("click", () => modal.classList.remove("show"));
     modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("show"); });
 
@@ -252,50 +256,50 @@
     window.addEventListener("resize", renderTimeline);
     const exportBtn = document.getElementById("exportPdf");
 
-exportBtn.addEventListener("click", async () => {
-  const isTimeline = viewToggle.value === "timeline";
-  const element = isTimeline
-    ? document.querySelector(".timeline-wrapper") // include labels
-    : document.querySelector(".schedule-grid");
+    exportBtn.addEventListener("click", async () => {
+      const isTimeline = viewToggle.value === "timeline";
+      const element = isTimeline
+        ? document.querySelector(".timeline-wrapper") // include labels
+        : document.querySelector(".schedule-grid");
 
-  const opt = {
-    margin: 0.3,
-    filename: "clas-schedule.pdf",
-    image: { type: "jpeg", quality: 1 },
-    html2canvas: { useCORS: true, scale: 2 },
-    jsPDF: {
-      unit: "in",
-      format: "letter",
-      orientation: isTimeline ? "landscape" : "portrait",
-    },
-  };
+      const opt = {
+        margin: 0.3,
+        filename: "clas-schedule.pdf",
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { useCORS: true, scale: 2 },
+        jsPDF: {
+          unit: "in",
+          format: "letter",
+          orientation: isTimeline ? "landscape" : "portrait",
+        },
+      };
 
-  let originalTransform = "";
-  let originalWidth = "";
+      let originalTransform = "";
+      let originalWidth = "";
 
-  if (isTimeline) {
-    const pageWidthInPx = 11 * 96 - 2 * 24; // letter width in px minus margins (approx)
-    const fullWidth = element.scrollWidth;
+      if (isTimeline) {
+        const pageWidthInPx = 11 * 96 - 2 * 24; // letter width in px minus margins (approx)
+        const fullWidth = element.scrollWidth;
 
-    const scale = pageWidthInPx / fullWidth;
+        const scale = pageWidthInPx / fullWidth;
 
-    originalTransform = element.style.transform;
-    originalWidth = element.style.width;
+        originalTransform = element.style.transform;
+        originalWidth = element.style.width;
 
-    element.style.transform = `scale(${scale})`;
-    element.style.transformOrigin = "top left";
-    element.style.width = `${fullWidth}px`;
-  }
+        element.style.transform = `scale(${scale})`;
+        element.style.transformOrigin = "top left";
+        element.style.width = `${fullWidth}px`;
+      }
 
-  await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(element).save();
 
-  // restore
-  if (isTimeline) {
-    element.style.transform = originalTransform;
-    element.style.width = originalWidth;
-    element.style.transformOrigin = "";
-  }
-});
+      // restore
+      if (isTimeline) {
+        element.style.transform = originalTransform;
+        element.style.width = originalWidth;
+        element.style.transformOrigin = "";
+      }
+    });
 
 
   });
