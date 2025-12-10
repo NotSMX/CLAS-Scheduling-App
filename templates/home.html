@@ -4,6 +4,14 @@
 
 {% block content %}
 
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
   <main class="shell">
     <section class="hero">
       <h1>Welcome, {{ user.name or 'Visitor' }}!</h1>

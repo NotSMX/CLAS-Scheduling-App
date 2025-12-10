@@ -133,13 +133,10 @@ def api_register():
     )
 
 
-@auth_blueprint.post("/api/v1/logout")
+@auth_blueprint.route("/logout", methods=["GET", "POST"])
 @login_required
 def api_logout():
     logout_user()
-    return render_template(
-        "home.html",
-        user=current_user,
-        success_code=200,
-        success_message="You have been logged out."
-    )
+    flash("You have been logged out.", "success")
+    return redirect(url_for("main.home"))
+
