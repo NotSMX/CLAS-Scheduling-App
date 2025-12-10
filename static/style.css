@@ -1524,3 +1524,52 @@ footer a:hover {
 .notification-empty-state p:last-child {
   font-size: 0.9rem;
 }
+
+.filter-form {
+  margin-bottom: 1.5rem;
+}
+
+.filter-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.filter-field select {
+  width: 100%;
+}
+
+.filter-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+
+.room-alert {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.room-alert.show {
+  opacity: 1;
+}
