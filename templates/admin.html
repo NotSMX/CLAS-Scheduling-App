@@ -11,14 +11,60 @@
   {% endif %}
 {% endwith %}
 
+<form method="get" action="{{ url_for('admin.view_sessions') }}" class="filter-form">
+  <div class="filter-row">
+    <div class="filter-field">
+      <label for="building-select">Building</label>
+      <select id="building-select" name="building">
+        <option value="">All</option>
+        {% for b in buildings %}
+          <option value="{{ b }}" {% if selected_building == b %}selected{% endif %}>{{ b }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label for="room-select">Room</label>
+      <select id="room-select" name="room_id">
+        <option value="">All</option>
+        {% for room in rooms %}
+          <option value="{{ room.id }}" {% if selected_room_id == room.id %}selected{% endif %}>
+            {{ room.room_number }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-field">
+      <label for="status-select">Status</label>
+      <select id="status-select" name="status">
+        <option value="">All</option>
+        <option value="draft"    {% if selected_status == 'draft' %}selected{% endif %}>Draft</option>
+        <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved</option>
+        <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
+        <option value="submitted" {% if selected_status == 'submitted' %}selected{% endif %}>Submitted</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-actions">
+    <button type="submit" class="btn">Apply</button>
+    <a href="{{ url_for('admin.view_sessions') }}" class="btn-outline">Clear</a>
+  </div>
+
+  <div id="room-alert" class="room-alert">
+    Please select a building first.
+  </div>
+</form>
+
 <table class="admin-table">
   <thead>
     <tr>
       <th>Title</th>
       <th>User</th>
       <th>Room</th>
-      <th>Start/End Time</th>
-      <th>Special Requests</th>
+      <th>Start Time</th>
+      <th>End Time</th>
       <th>Status</th>
       <th>Update Time</th>
       <th>Actions</th>
@@ -26,24 +72,19 @@
   </thead>
   <tbody>
     {% for session_obj in sessions %}
-    <tr class="admin-session-row"
-        data-title="{{ session_obj.event.session_title }}"
-        data-dept="{{ session_obj.event.department }}"
-        data-course="{{ session_obj.event.course_number }} - {{ session_obj.event.course_title }}"
-        data-format="{{ session_obj.event.format }}"
-        data-num-students="{{ session_obj.event.num_students }}"
-        data-room-request="{{ session_obj.event.room_request }}"
-        data-special-request="{{ session_obj.event.special_request }}">
+    <tr>
       <td>{{ session_obj.event.session_title }}</td>
       <td>{{ session_obj.user.name }}</td>
-      <td>{{ session_obj.room.building_name + " " + session_obj.room.room_number|string }}</td>
-      <td>{{ (session_obj.start_time.strftime('%I:%M %p') if session_obj.start_time else '') + (('<br>' if session_obj.start_time and session_obj.end_time else '') + session_obj.end_time.strftime('%I:%M %p') if session_obj.end_time else '') | safe }}</td>
-      <td>{{ session_obj.event.special_request }}</td>
+      <td>{{ session_obj.room.room_number }}</td>
+      <td>{{ session_obj.start_time.strftime('%I:%M %p') if session_obj.start_time else '' }}</td>
+      <td>{{ session_obj.end_time.strftime('%I:%M %p') if session_obj.end_time else '' }}</td>
       <td>
         {% if session_obj.event.status == 'approved' %}
           <span class="status-badge approved">Approved</span>
         {% elif session_obj.event.status == 'rejected' %}
           <span class="status-badge rejected">Rejected</span>
+        {% elif session_obj.event.status == 'submitted' %}
+          <span class="status-badge draft">Submitted</span>
         {% else %}
           <span class="status-badge draft">Draft</span>
         {% endif %}
@@ -72,56 +113,51 @@
   </tbody>
 </table>
 
-<!-- modal -->
-<div id="adminSessionModal" class="session-modal">
-  <div class="session-modal-content">
-    <div class="modal-header">
-      <button id="adminModalClose" class="session-modal-close">×</button>
-    </div>
-    <div id="adminModalBody">
-      <h2 id="adminModalTitle"></h2>
-      <p><strong>Department:</strong> <span id="adminModalDept"></span></p>
-      <p><strong>Course:</strong> <span id="adminModalCourse"></span></p>
-      <p><strong>Format:</strong> <span id="adminModalFormat"></span></p>
-      <p><strong>Number of Students:</strong> <span id="adminModalNumStudents"></span></p>
-      <p><strong>Room Request:</strong> <span id="adminModalRoomRequest"></span></p>
-      <p><strong>Special Request:</strong> <span id="adminModalSpecialRequest"></span></p>
-    </div>
-  </div>
-</div>
-
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const modal = document.getElementById("adminSessionModal");
-  const modalTitle = document.getElementById("adminModalTitle");
-  const modalDept = document.getElementById("adminModalDept");
-  const modalCourse = document.getElementById("adminModalCourse");
-  const modalFormat = document.getElementById("adminModalFormat");
-  const modalNumStudents = document.getElementById("adminModalNumStudents");
-  const modalRoomRequest = document.getElementById("adminModalRoomRequest");
-  const modalSpecialRequest = document.getElementById("adminModalSpecialRequest");
-  const modalClose = document.getElementById("adminModalClose");
+  const buildingSelect = document.getElementById('building-select');
+  const roomSelect = document.getElementById('room-select');
+  const roomAlert = document.getElementById('room-alert');
 
-  document.addEventListener("click", (e) => {
-    const row = e.target.closest(".admin-session-row");
-    if (!row) return;
-    // Ignore clicks on buttons inside the row
-    if (e.target.tagName === "BUTTON") return;
+  // building to rooms mapping from server
+  const roomsByBuilding = JSON.parse(`{{ rooms_by_building | tojson | safe }}`);
 
-    modalTitle.textContent = row.dataset.title || "";
-    modalDept.textContent = row.dataset.dept || "";
-    modalCourse.textContent = row.dataset.course || "";
-    modalFormat.textContent = row.dataset.format || "";
-    modalNumStudents.textContent = row.dataset.numStudents || "";
-    modalRoomRequest.textContent = row.dataset.roomRequest || "";
-    modalSpecialRequest.textContent = row.dataset.specialRequest || "";
 
-    modal.classList.add("show");
+  function repopulateRoomsForBuilding(buildingName) {
+    // reset options
+    roomSelect.innerHTML = '<option value="">All</option>';
+
+    if (!buildingName) {
+      return; // no building, only "All" option
+    }
+
+    const list = roomsByBuilding[buildingName] || [];
+    list.forEach(room => {
+      const opt = document.createElement('option');
+      opt.value = room.id;
+      opt.textContent = room.room_number;
+      roomSelect.appendChild(opt);
+    });
+
+    // clear any previously selected room when building changes
+    roomSelect.value = "";
+  }
+
+  // when building changes, update room dropdown immediately
+  buildingSelect.addEventListener('change', (e) => {
+    repopulateRoomsForBuilding(e.target.value);
   });
 
-  modalClose.addEventListener("click", () => modal.classList.remove("show"));
-  modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("show"); });
-});
-</script>
+  // same disappearing alert as before if they click Room with no building
+  function showRoomAlert() {
+    if (!buildingSelect.value) {
+      roomAlert.classList.add('show');
+      setTimeout(() => {
+        roomAlert.classList.remove('show');
+      }, 1600);
+    }
+  }
 
+  roomSelect.addEventListener('focus', showRoomAlert);
+  roomSelect.addEventListener('mousedown', showRoomAlert);
+</script>
 {% endblock %}

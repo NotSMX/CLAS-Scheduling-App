@@ -22,14 +22,62 @@ def admin_required(func):
 @login_required
 @admin_required
 def view_sessions():
-    # preload event, room, user
-    sessions = Session.query.options(
-        db.joinedload(Session.event),
-        db.joinedload(Session.room),
-        db.joinedload(Session.user)
+    building = request.args.get('building') or None
+    room_id = request.args.get('room_id', type=int)
+    status = request.args.get('status') or None
+
+    # base query with joins so we can filter by room / event fields
+    query = (
+        Session.query
+        .options(
+            db.joinedload(Session.event),
+            db.joinedload(Session.room),
+            db.joinedload(Session.user),
+        )
+        .join(Room, Session.room_id == Room.id)
+        .join(Event, Session.submission_id == Event.id)
+    )
+
+    if building:
+        query = query.filter(Room.building_name == building)
+    if room_id:
+        query = query.filter(Session.room_id == room_id)
+    if status:
+        query = query.filter(Event.status == status)
+
+    sessions = query.order_by(
+        Room.building_name,
+        Room.room_number,
+        Session.start_time
     ).all()
-    
-    return render_template('admin.html', sessions=sessions)
+
+    # all rooms once, used for filters + JS map
+    all_rooms = Room.query.order_by(Room.building_name, Room.room_number).all()
+    buildings = sorted({r.building_name for r in all_rooms})
+
+    if building:
+        rooms = [r for r in all_rooms if r.building_name == building]
+    else:
+        rooms = all_rooms
+
+    # map: building -> list of {id, room_number}
+    rooms_by_building = {}
+    for r in all_rooms:
+        rooms_by_building.setdefault(r.building_name, []).append(
+            {"id": r.id, "room_number": r.room_number}
+        )
+
+    return render_template(
+        "admin.html",
+        sessions=sessions,
+        buildings=buildings,
+        rooms=rooms,
+        selected_building=building,
+        selected_room_id=room_id,
+        selected_status=status,
+        rooms_by_building=rooms_by_building,
+    )
+
 
 @admin_blueprint.post('/sessions/update/<int:session_id>')
 @login_required
