@@ -75,21 +75,21 @@ def setup_db(app):
         db.session.add_all([room1, room2])
         db.session.commit()
 
+        # Events
         event1 = Event(
-        user_id=user.id,
-        clas_type="Lecture",
-        format="In-person",
-        department="CS",
-        course_number="101",
-        course_title="Intro to CS",
-        session_title="Session 1",
-        num_entries=10,
-        num_students=20,
-        session_length=60,
-        individual_entry_length=15,
-        status="submitted"
-    )
-
+            user_id=user.id,
+            clas_type="Lecture",
+            format="In-person",
+            department="CS",
+            course_number="101",
+            course_title="Intro to CS",
+            session_title="Session 1",
+            num_entries=10,
+            num_students=20,
+            session_length=60,
+            individual_entry_length=15,
+            status="submitted"
+        )
         event2 = Event(
             user_id=user.id,
             clas_type="Seminar",
@@ -104,16 +104,33 @@ def setup_db(app):
             individual_entry_length=15,
             status="submitted"
         )
-        event1.start_time = time(9, 0)
-        event2.start_time = time(10, 0)
 
         db.session.add_all([event1, event2])
         db.session.commit()
 
-        yield dict(user=user, rooms=[room1, room2], events=[event1, event2])
+        # Create Sessions for each Event
+        session1 = Session(
+            user_id=user.id,
+            submission_id=event1.id,
+            room_id=room1.id,
+            start_time=time(9,0),
+            end_time=time(10,0)
+        )
+        session2 = Session(
+            user_id=user.id,
+            submission_id=event2.id,
+            room_id=room2.id,
+            start_time=time(10,0),
+            end_time=time(10,45)
+        )
+        db.session.add_all([session1, session2])
+        db.session.commit()
+
+        yield dict(user=user, rooms=[room1, room2], events=[event1, event2], sessions=[session1, session2])
 
         db.session.remove()
         db.drop_all()
+
 
 @pytest.fixture
 def admin_client(app):
