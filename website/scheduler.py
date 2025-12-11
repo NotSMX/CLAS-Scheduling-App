@@ -3,38 +3,30 @@ from .models import Session, Event, Room, db
 from datetime import datetime, time, timedelta
 from sqlalchemy import and_, cast, String
 
-def build_schedule_suggestions(events):
+def build_schedule_suggestions(sessions):
     """
-    Group events by day and room, and return a light-weight
-    structure for the schedule page.
+    Group sessions by room, return a structure for schedule page.
     """
-    schedule = defaultdict(lambda: defaultdict(list))
-    for ev in events:
-        day = ev.day or "Unscheduled"
-        room = ev.room_id or "TBD Room"
-        schedule[day][room].append(ev)
-    # Turn into a sorted list of day blocks for template
-    day_blocks = []
-    for day in sorted(schedule.keys()):
-        room_blocks = []
-        for room in sorted(schedule[day].keys()):
-            room_events = sorted(
-                schedule[day][room],
-                key=lambda e: (e.start_time or "", e.session_title or ""),
-            )
-            room_blocks.append(
-                {
-                    "room": room,
-                    "events": room_events,
-                }
-            )
-        day_blocks.append(
-            {
-                "day": day,
-                "rooms": room_blocks,
-            }
+    schedule = defaultdict(list)
+
+    for sess in sessions:
+        room = sess.room_id or "TBD Room"
+        schedule[room].append(sess)
+
+    # Turn into a list of room blocks
+    room_blocks = []
+    for room in sorted(schedule.keys()):
+        room_events = sorted(
+            schedule[room],
+            key=lambda e: (e.start_time or "", getattr(e.event, "session_title", ""))
         )
-    return day_blocks
+        room_blocks.append({
+            "room": room,
+            "events": room_events
+        })
+
+    # Single top-level "day" placeholder
+    return [{"day": "Unscheduled", "rooms": room_blocks}]
 
 class Scheduler:
     def __init__(self):
