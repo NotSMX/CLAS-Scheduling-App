@@ -14,28 +14,11 @@ def notifications_page():
 @notifications_blueprint.get("/notifications/create")
 @login_required
 def create_notification_page():
-    if current_user.role != "admin":
-        return render_template(
-            "notifications.html",
-            user=current_user,
-            notifications=Notification.query.filter_by(is_active=True).order_by(Notification.created_at.desc()).all(),
-            error_code=403,
-            error_message="You don't have permission to create notifications."
-        )
     return render_template("notification_create.html", user=current_user)
 
 @notifications_blueprint.post("/api/v1/notifications")
 @login_required
 def api_create_notification():
-    if current_user.role != "admin":
-        return render_template(
-            "notifications.html",
-            user=current_user,
-            notifications=Notification.query.filter_by(is_active=True).order_by(Notification.created_at.desc()).all(),
-            error_code=403,
-            error_message="You don't have permission to create notifications."
-        )
-    
     title = request.form.get('title', '').strip()
     message = request.form.get('message', '').strip()
     priority = request.form.get('priority', 'normal')
@@ -84,16 +67,7 @@ def api_create_notification():
 
 @notifications_blueprint.post("/api/v1/notifications/<int:notification_id>/delete")
 @login_required
-def api_delete_notification(notification_id):
-    if current_user.role != "admin":
-        return render_template(
-            "notifications.html",
-            user=current_user,
-            notifications=Notification.query.filter_by(is_active=True).order_by(Notification.created_at.desc()).all(),
-            error_code=403,
-            error_message="You don't have permission to delete notifications."
-        )
-    
+def api_delete_notification(notification_id):    
     notification = Notification.query.get_or_404(notification_id)
     notification.is_active = False
     db.session.commit()

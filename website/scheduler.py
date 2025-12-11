@@ -152,9 +152,11 @@ class Scheduler:
                     'end_time': end_time,
                     'room': room,
                     'room_name': f"{room.building_name} {room.room_number}",
-                    'is_preferred': event.room_request and (
-                        event.room_request in room.building_name or 
-                        str(event.room_request) in str(room.room_number)
+                    'is_preferred': bool(
+                        event.room_request and (
+                            event.room_request in room.building_name or 
+                            str(event.room_request) in str(room.room_number)
+                        )
                     )
                 })
         

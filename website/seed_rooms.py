@@ -1,9 +1,11 @@
-from website import db
-from . import website
-from .models import Room
+from website import create_app
+from .models import Room, db
 
-def seed_rooms():
-    with website.app_context():
+def seed_rooms(app=None):
+    if app is None:
+        from website import create_app
+        app = create_app()
+    with app.app_context():
         # Check if rooms already exist
         if Room.query.first():
             print("Rooms already exist in database")
@@ -31,6 +33,3 @@ def seed_rooms():
         
         db.session.commit()
         print(f"Successfully added {len(rooms)} rooms to the database!")
-
-if __name__ == "__main__":
-    seed_rooms()
