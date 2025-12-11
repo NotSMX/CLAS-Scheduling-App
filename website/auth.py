@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
-from .models import db, User, Session, Event
+from .models import db, User
 from . import oauth_client
 import re
 from authlib.integrations.base_client.errors import MismatchingStateError
