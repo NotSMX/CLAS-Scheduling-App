@@ -1,5 +1,5 @@
 from collections import defaultdict
-from .models import Session, Event, Room, db
+from models import Session, Event, Room, db
 from datetime import datetime, time, timedelta
 from sqlalchemy import and_, cast, String
 

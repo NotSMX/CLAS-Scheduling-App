@@ -1,8 +1,8 @@
 from flask import Blueprint, request, render_template, flash, redirect, url_for
 from flask_login import login_required, current_user
-from .models import db, Event, Session, Room
+from models import db, Event, Session, Room
 from datetime import datetime, time
-from .scheduler import Scheduler
+from scheduler import Scheduler
 
 events_blueprint = Blueprint("events", __name__)
 
