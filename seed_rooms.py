@@ -1,9 +1,8 @@
-from website import db
-from . import website
-from .models import Room
+from app import app, db
+from models import Room
 
 def seed_rooms():
-    with website.app_context():
+    with app.app_context():
         # Check if rooms already exist
         if Room.query.first():
             print("Rooms already exist in database")

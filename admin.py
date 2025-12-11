@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from .models import db, Session, Event, Room
+from models import db, Session, Event, Room
 from datetime import datetime, timedelta
 from functools import wraps
-from .scheduler import Scheduler
+from scheduler import Scheduler
 
 
 admin_blueprint = Blueprint('admin', __name__, url_prefix='/admin')

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request
 from flask_login import login_user, logout_user, login_required, current_user
-from .models import db, User, Session, Event, Room, Notification
+from models import db, User, Session, Event, Room, Notification
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 import re
@@ -38,7 +38,8 @@ def inject_latest_notification():
 
 @main_blueprint.get("/")
 def landing():
-    return redirect(url_for("main.home"))
+    sessions = Session.query.limit(6).all()
+    return render_template("base.html", sessions=sessions, user=current_user)
 
 @main_blueprint.get("/home")
 def home():
