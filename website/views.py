@@ -181,28 +181,29 @@ def api_settings():
     confirm_password = request.form.get("confirm_password") or ""
 
     # Handle file upload
+    # Handle file upload first
     if 'profile_picture' in request.files:
         file = request.files['profile_picture']
         if file and file.filename and allowed_file(file.filename):
-            # Generate unique filename
+            # Absolute path
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            upload_folder = os.path.join(base_dir, 'static/uploads/profile_pics')
+            os.makedirs(upload_folder, exist_ok=True)
+
+            # Unique filename
             file_ext = file.filename.rsplit('.', 1)[1].lower()
             unique_filename = f"{uuid.uuid4().hex}.{file_ext}"
-            filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
-            
-            # Save file
+            filepath = os.path.join(upload_folder, unique_filename)
             file.save(filepath)
-            
-            # Delete old profile picture if it exists and is not a URL
+
+            # Delete old file if exists
             if current_user.profile_pic_url and current_user.profile_pic_url.startswith('/static/uploads/'):
-                old_path = current_user.profile_pic_url.lstrip('/')
+                old_path = os.path.join(base_dir, current_user.profile_pic_url.lstrip('/'))
                 if os.path.exists(old_path):
-                    try:
-                        os.remove(old_path)
-                    except:
-                        pass
-            
-            # Set the new profile pic URL
-            profile_pic_url = f'/static/uploads/profile_pics/{unique_filename}'
+                    os.remove(old_path)
+
+            current_user.profile_pic_url = f'/static/uploads/profile_pics/{unique_filename}'
+
 
     if name:
         current_user.name = name
