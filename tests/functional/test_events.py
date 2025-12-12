@@ -1,6 +1,5 @@
 """
 Functional tests for events.py (HTTP routes)
-Tests match actual application behavior.
 """
 import pytest
 from datetime import datetime, time
